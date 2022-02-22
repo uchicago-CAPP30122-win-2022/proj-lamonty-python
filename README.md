@@ -23,4 +23,4 @@ ag --> django
 
 
 ```
-<i>This diagram was created with <a href='https://mermaid-js.github.io/mermaid/#/'Mermaid-js</a>
+<i>This diagram was created with <a href='https://mermaid-js.github.io/mermaid/#/'>Mermaid-js</a>
