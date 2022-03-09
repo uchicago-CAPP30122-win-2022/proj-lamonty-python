@@ -1,7 +1,7 @@
 # Run this app with `python app.py` and
 # visit http://127.0.0.1:8050/ in your web browser.
 
-from dash import Dash, html, dcc
+from dash import Dash, html, dcc, Input, Output
 import plotly.express as px
 from helper.gen_table import generate_table
 import pandas as pd
@@ -27,10 +27,6 @@ fig_bar.update_layout(
     font_color=colors['text']
 )
 
-fig_scatter = px.scatter(df, x="pcnt_white", y="aid",
-                size="population", color="county_id", hover_name="county_id",
-                size_max=60)
-
 app.layout = html.Div(style={'backgroundColor': colors['background']}, children=[
     html.H1(
         children='(la)Monty Python Dash Template',
@@ -48,17 +44,12 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
     ),
     html.Div(children=[
         html.Label('Dropdown'),
-        dcc.Dropdown(counties, counties[0], multi = True)
+        dcc.Dropdown( counties, counties[0:3], multi = True, id='county-dd')
     ]),
 
     html.Div(children=[
         dcc.Graph(
-        id='bar-graph',
-        figure=fig_bar
-        ),
-        dcc.Graph(
-            id='scatter-graph',
-            figure=fig_scatter
+            id='scatter-fig'
         )
     ]),
 
@@ -71,6 +62,24 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
     ),
     generate_table(df)
 ])
+
+
+@app.callback(
+    Output('scatter-fig', 'figure'),
+    Input('county-dd', 'value'))
+def update_figures(selected_counties):
+    # print('selected_counties',selected_counties)
+    if not isinstance(selected_counties, list):
+        selected_counties = [selected_counties]
+    filtered_df = df[df['county_id'].isin(selected_counties)]
+
+    fig = px.scatter(filtered_df, x="pcnt_white", y="aid",
+                size="population", color="county_id", hover_name="county_id",
+                size_max=60)
+
+    fig.update_layout(transition_duration=500)
+
+    return fig
 
 if __name__ == '__main__':
     app.run_server(debug=True)
