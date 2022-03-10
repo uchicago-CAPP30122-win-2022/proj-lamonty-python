@@ -9,7 +9,7 @@ import pandas as pd
 app = Dash(__name__)
 
 colors = {
-    'background': '#ecf0f1',
+    'background': 'white',
     'text': '#af7ac5  '
 }
 
@@ -17,7 +17,7 @@ colors = {
 # see https://plotly.com/python/px-arguments/ for more options
 
 df = pd.read_csv('dummy_data.csv')
-counties = df['county_id'].unique()
+
 
 fig_bar = px.bar(df, x="dc_id", y="aid", color='dem_rep', barmode="group")
 
@@ -36,15 +36,18 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
         }
     ),
 
-    html.Div(children='Dash: A web application framework for your data.',
-        style={
-            'textAlign': 'center',
-            'color': colors['text']
-        }
-    ),
     html.Div(children=[
-        html.Label('Dropdown'),
-        dcc.Dropdown( counties, counties[0:3], multi = True, id='county-dd')
+        html.Label('Select a State'),
+        dcc.Dropdown(df['state'].unique(), 
+            df['state'].unique()[0:3], multi = True, id='state-dd'),
+        html.Label('Select a Year'),
+        dcc.Dropdown(df['year'].unique(), 
+            df['year'].unique()[0], multi = True, id='year-dd'),
+        html.Label('Select Disaster Type'),
+        dcc.Dropdown(df['disaster_type'].unique(), 
+            df['disaster_type'].unique()[0], multi = True, id='disaster-dd'),
+        html.Label('Select X Axis Variable'),
+        dcc.Dropdown(df.columns[7:11], df.columns[7], id='xaxis-dd')
     ]),
 
     html.Div(children=[
@@ -66,18 +69,29 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
 
 @app.callback(
     Output('scatter-fig', 'figure'),
-    Input('county-dd', 'value'))
-def update_figures(selected_counties):
-    # print('selected_counties',selected_counties)
-    if not isinstance(selected_counties, list):
-        selected_counties = [selected_counties]
-    filtered_df = df[df['county_id'].isin(selected_counties)]
+    Input('state-dd', 'value'),
+    Input('year-dd', 'value'),
+    Input('disaster-dd', 'value'),
+    Input('xaxis-dd', 'value')
+)
+def update_figures(states, years, disasters, xaxis):
+    # print('states',states)
+    if not isinstance(states, list):
+        states = [states]
+    if not isinstance(years, list):
+        years = [years]
+    if not isinstance(disasters, list):
+        disasters = [disasters]
 
-    fig = px.scatter(filtered_df, x="pcnt_white", y="aid",
-                size="population", color="county_id", hover_name="county_id",
+    filtered_df = df[df['state'].isin(states) & 
+                    df['disaster_type'].isin(disasters) & 
+                    df['year'].isin(years)]
+
+    fig = px.scatter(filtered_df, x=xaxis, y="aid",
+                size="population", color="disaster_type", hover_name="county_id",
                 size_max=60)
 
-    fig.update_layout(transition_duration=500)
+    fig.update_layout()
 
     return fig
 
