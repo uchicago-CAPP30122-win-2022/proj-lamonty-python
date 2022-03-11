@@ -11,15 +11,20 @@ colors = {
     'background': '#ecf0f1',
     'text': '#af7ac5  '
 }
+
+##MAKE FUNCTION
 with open('geojson-counties-fips.json', 'r') as f:
   counties = json.load(f)
-df = pd.read_csv("https://raw.githubusercontent.com/plotly/datasets/master/fips-unemp-16.csv",
-                   dtype={"fips": str})
+winner = pd.read_csv("county_president_winner.csv", dtype={"county_fips": str})
+df = winner.loc[winner['year'] == 2016]
 hurricane_path = pd.read_csv("hurricane_path.csv")
-hurricanes = hurricane_path['NAME'].unique()
 
+hurricanes = hurricane_path['NAME'].unique()
 harvey_data = hurricane_path .loc[(hurricane_path ['NAME'] == 'HARVEY')]
-fig = px.choropleth_mapbox(df, geojson=counties, locations='fips',
+##########
+
+fig = px.choropleth_mapbox(df, geojson=counties, locations='county_fips',
+                           color = 'party',
                            mapbox_style="open-street-map",
                            zoom=3, 
                            center = {"lat": 37.0902, "lon": -95.7129},
