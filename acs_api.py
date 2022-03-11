@@ -12,7 +12,7 @@ data and returns it as a Pandas dataframe.
 import pandas as pd
 import regex as re
 import censusdata
-import api from API
+from api import API
 pd.set_option('display.expand_frame_repr', False)
 pd.set_option('display.precision', 2)
 
@@ -99,5 +99,5 @@ def make_acs_api_call(states,years):
     Functions that makes the call to run ACS class, and return final dataframe.
     '''
     df_create = ACSapi(states,years)
-    dataframe = df_create.merge_clean_dataframes()
+    dataframe = df_create.clean_data()
     return dataframe
