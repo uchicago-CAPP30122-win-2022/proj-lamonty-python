@@ -61,6 +61,8 @@ class ACSapi(API):
             The last step is to filter by the input "states" list.
         '''
 
+        self.get_data()
+
         final_df = self.detail_df.merge(self.dp_df, left_index=True, right_index=True)
         final_df = final_df.rename(columns={"B01003_001E":"population",
                 "B05012_003E":"foreign_born","B06011_001E":"median_income","DP05_0038PE":"black_afam",
@@ -70,7 +72,6 @@ class ACSapi(API):
                 "DP04_0047PE":"renter_occupied_rate","DP04_0089E":"median_home_price",
                 "DP04_0134E":"median_rent", "DP04_0142PE":"rent_burden_rate"})
 
-        final_df = final_df[final_df.isnull().any(axis=1)]
         final_df = final_df.dropna()
 
         for col in final_df:
