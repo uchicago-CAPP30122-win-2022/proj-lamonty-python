@@ -21,7 +21,7 @@ layout = html.Div(children=[
             'textAlign': 'center'
         }
     ),
-    dcc.Link('Go to Page 2', href='/page2'), # placeholder for page 2 link
+    dcc.Link('Go to Detail View', href='/detail_view'), # placeholder for page 2 link
 
     html.Div(className = 'filter-container',
         children=[

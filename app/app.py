@@ -1,5 +1,5 @@
 from dash import Dash, dcc, html, Input, Output, callback
-from pages import cross_section, page2 #ZM: Update page2 once AR's view is in
+from pages import cross_section, detail_view #ZM: Update detail_view once AR's view is in
 
 
 app = Dash(__name__, suppress_callback_exceptions=True)
@@ -17,8 +17,8 @@ def display_page(pathname):
     print(pathname)
     if pathname == '/' or pathname == '/cross_section': # ZM: replace '/' gate with splash page?
         return cross_section.layout
-    elif pathname == '/page2':
-        return page2.layout # ZM: update name once's AR's view is in 
+    elif pathname == '/detail_view':
+        return detail_view.layout # ZM: update name once's AR's view is in 
     else:
         return '404'
 
