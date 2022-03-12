@@ -3,21 +3,11 @@
 Ali Klemencic
 March 2022
 
-API to connect to OpenFEMA.
+API to connect to OpenFEMA. Downloads data from the Disaster
+Declaration Summaries and Web Disaster Summaries datasets.
 
-Downloads data from the Disaster Declaration Summaries, Web
-	Disaster Summaries, and Mission Assignments datasets.
-
-Code adapted from OpenFEMA developer resources: https://www.fema.gov/about/openfema/developer-resources
-
-****************************************************************************************************************
-To Do:
-	Test code to make sure filter paths correct (is it " " or "_"?)
-	Test Pandas dataframe merge code
-	Create virtual environment and run in there
-	Create requirements.txt
-		pip3 freeze > requirements.txt
-*****************************************************************************************************************
+Code adapted from OpenFEMA developer resources:
+https://www.fema.gov/about/openfema/developer-resources.
 """
 
 import requests
@@ -41,10 +31,7 @@ class FemaAPI(API):
 	                "wds": ("/v1/FemaWebDisasterSummaries", """?$select=disasterNumber,
 	                        totalAmountIhpApproved,totalAmountHaApproved,totalAmountOnaApproved,
 	                        totalObligatedAmountPa,totalObligatedAmountCategoryAb,
-	                        totalObligatedAmountCatC2g,totalObligatedAmountHmgp"""),
-	                "ms": ("/v1/MissionAssignments", """?$select=disasterNumber,
-	                        stateCostShareAmt,federalCostShareAmt,requestedAmount,
-	                        obligationAmount,projectedCompletionDate""")}
+	                        totalObligatedAmountCatC2g,totalObligatedAmountHmgp""")}
 
 	def __init__(self, states, years):
 		"""
@@ -65,41 +52,41 @@ class FemaAPI(API):
 
 		:return: (str) filter path
 		"""
-		filter_path = "$filter="
+		filter_path = "&$filter="
 
 		for i, state in enumerate(self.states):
-			filter_path += f'(fipsStateCode_eq_{state}'
-			if i == len(states) - 1:
+			filter_path += f"(fipsStateCode eq '{state}'"
+			if i == len(self.states) - 1:
 				filter_path += ")"
 			else:
-				filter_path += "_or_"
+				filter_path += " or "
 
 		for i, year in enumerate(self.years):
 			if filter_path[-1] == ")":
-				filter_path += "_and_"
-			filter_path += f'(fyDeclared_eq_{year}'
-			if i != len(states) - 1:
-				filter_path += "_or_"
-			else:
+				filter_path += " and "
+			filter_path += f"(fyDeclared eq '{year}'"
+			if i == len(self.years) - 1:
 				filter_path += ")"
+			else:
+				filter_path += " or "
 
 		return filter_path
 
 
-	def get_wds_ms_filter_path(self):
+	def get_wds_filter_path(self):
 		"""
-		Gets the correct filter path for a WDS or MS dataset API call.
+		Gets the correct filter path for a WDS dataset API call.
 
 		:return: (str) filter path
 		"""
-		filter_path = "$filter="
+		filter_path = "&$filter="
 
 		for i, num in enumerate(self.disasters):
-			filter_path += f'(disasterNumber_eq_{num}'
-			if i == len(disasters) - 1:
+			filter_path += f'(disasterNumber eq {num}'
+			if i == len(self.disasters) - 1:
 				filter_path += ")"
 			else:
-				filter_path += "_or_"
+				filter_path += " or "
 
 		return filter_path
 
@@ -118,15 +105,15 @@ class FemaAPI(API):
 		r = requests.get(
 			cls.base_path
 			+ cls.dataset_dict[dataset][0]
-			+ filter_path
-			+ cls.record_count_path)
-		if r.status_code == 404 or r.status_code == 403:
+			+ cls.record_count_path
+			+ filter_path)
+		if r.status_code != 200:
 			raise ValueError("API call failed")
 		result = r.text.encode("iso-8859-1")
 		json_data = json.loads(result.decode())
 
 		count = json_data['metadata']['count']
-		loop_num = math.ceil(count / TOP)
+		loop_num = math.ceil(count / cls.top)
 
 		return loop_num, count
 
@@ -151,18 +138,20 @@ class FemaAPI(API):
 			r = requests.get(
 				self.base_path
 				+ endpoint
-				+ select_path
+				+ select_path.replace("\n", "")
 				+ filter_path
 				+ "&$metadata=off&$format=jsona&$skip="
 				+ str(skip)
 				+ "&$top="
 				+ str(self.top)
 			)
+			if r.status_code != 200:
+				raise ValueError("API call failed")
 			result = r.text.encode("iso-8859-1")
 			json_data = json.loads(result.decode())
 
 			df = pd.DataFrame(json_data)
-			pd.concat([final_dataframe,df])
+			dataframe = pd.concat([dataframe,df])
 
 			i += 1
 			skip = i * self.top
@@ -178,22 +167,21 @@ class FemaAPI(API):
 		:return: (dict) Pandas dataframes for each dataset
 		"""
 		dataframes = {}
-		keys = ["dds", "wds", "ms"]
+		keys = ["dds", "wds"]
 
 		for dataset in keys:
 			if dataset == "dds":
 				filter_path = self.get_dds_filter_path()
 			else:
 				self.disasters = dataframes["dds"].disasterNumber.unique()
-				filter_path = self.get_wds_ms_filter_path()
+				filter_path = self.get_wds_filter_path()
 
 			loop_num, count = self.get_loop_num(dataset, filter_path)
 
 			print("Starting " + dataset + " call: " + str(count) + " records, " + str(self.top) +
 			      " returned per call, " + str(loop_num) + " iterations needed.")
 
-			df = self.get_dataframe(dataset, filter_path, loop_num)
-			dataframes["dataset"] = df
+			dataframes[dataset] = self.get_dataframe(dataset, filter_path, loop_num)
 
 		return dataframes
 
@@ -205,8 +193,13 @@ class FemaAPI(API):
 		:param dataframes: (dict) Pandas dataframes
 		                    for each dataset
 		"""
-		for df in dataframes:
-			self.data.join(df.set_index('disasterNumber'), on='disasterNumber')
+		for _, df in dataframes.items():
+			df = df.drop(['id'], axis=1)
+			df = df.set_index('disasterNumber')
+			if self.data.empty:
+				self.data = df
+			else:
+				self.data = self.data.join(df, on='disasterNumber')
 
 
 def make_fema_api_call(states, years):
