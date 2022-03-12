@@ -50,7 +50,6 @@ class ACSapi(API):
                     dp_year = censusdata.download('acs1', year,
                                     censusdata.censusgeo([('county', '*')]),
                                    cols, tabletype='profile')
-                    dp_year['year'] = year
                     self.dp_df = pd.concat([self.dp_df,dp_year])
 
 
