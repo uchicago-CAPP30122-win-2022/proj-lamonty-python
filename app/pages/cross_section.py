@@ -1,10 +1,12 @@
 # Run this app with `python app.py` and
 # visit http://127.0.0.1:8050/ in your web browser.
 
+from helper import parse_restyle
 from dash import Dash, html, dcc, Input, Output, callback
 import plotly.express as px
 import pandas as pd
 import json
+import helper.parse_restyle
 
 # ZM: make a callback for getting data from API
 # We will need to filter for type separately from year/state, which go into the
@@ -71,7 +73,6 @@ layout = html.Div(children=[
     Input('xaxis-dd', 'value')
 )
 def update_scatter(states, years, disasters, xaxis):
-    print('years', years)
     if not isinstance(states, list):
         states = [states]
     if not isinstance(years, list):
@@ -84,6 +85,8 @@ def update_scatter(states, years, disasters, xaxis):
         (df['year'] >= years[0]) &
         (df['year'] <= years[1])]
 
+
+
     scatter_fig = px.scatter(filtered_df, x=xaxis, y="aid",
         size="population", color="disaster_type", hover_name="county_id",
         size_max=60)
@@ -95,12 +98,18 @@ def update_scatter(states, years, disasters, xaxis):
 
     return scatter_fig, pc_fig
 
-# ZM: callback to print out restyle for testing purposes. 
+# ZM: callback to highlight bubbles from parallelcoord selection
 @callback(
-    Output('restyle-data-pc', 'children'),
+    Output('restyle-data-pc', 'children'),#ZM: update output to bubble chart
     Input('pc-fig', 'restyleData'))
 def pc_highlight_scatter(restyleData):
-    #print('restyleData', restyleData)
+    if restyleData: # change this to if first key None or not
+        dim_index, dim_range = parse_restyle.parse_restyle(restyleData)
+        print('dim_index', dim_index)
+        print('range', dim_range)
+        #ZM: highlight bubbles here
+
+
     #for d in restyleData:
        # print('d', d)
        # print('key',d.keys())
