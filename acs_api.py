@@ -5,8 +5,9 @@ Quasi-API to connect to American Community Survey (ACS).
 Wesley Janson
 March 2022
 
-Code heavily uses CensusData library, which uses Census API to pull
+Code relies on CensusData library, which uses Census API to pull
 data and returns it as a Pandas dataframe.
+CensusData information: https://pypi.org/project/CensusData/
 """
 # pip install CensusData
 import pandas as pd
@@ -26,6 +27,13 @@ class ACSapi(API):
                     'DP04_0142PE']}
 
     def __init__(self, states, years):
+        '''
+		Constructor.
+
+        Parameters:
+			-states: list of states to filter on
+			-years: list of years to filter on
+		'''
         self.states = states
         self.years = years
         self.detail_df = None
@@ -34,9 +42,9 @@ class ACSapi(API):
 
     def get_data(self):
         '''
-        Uses CensusData library to pull American Community Survey data using an
-            API. It downloads the two separate tables, outputs them as pandas
-            dataframes.
+        Class method that uses CensusData library to pull American Community Survey
+            data using an API. It downloads the two separate tables, outputs them as
+            pandas dataframes.
         '''
         for table,cols in self.table_dict.items():
             for year in self.years:
@@ -55,9 +63,10 @@ class ACSapi(API):
 
     def clean_data(self):
         '''
-        Initially merges and then cleans the merged pandas dataframe. It removes any NA or null
-            values, removes missing observations, and creates relevant variables from the index.
-            The last step is to filter by the input "states" list.
+        Class method that initially calls the "get_data" method that pulls ACS
+            data, merges and then cleans the merged pandas dataframe. It removes any
+            NA or null values, removes missing observations, and creates relevant
+            variables from the index. The last step is to filter by the input "states" list.
         '''
 
         self.get_data()
