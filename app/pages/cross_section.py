@@ -25,11 +25,7 @@ layout = html.Div(children=[
             html.Div(className='filter-div',
                 children = [html.Label('Select a Year'),
                     dcc.Dropdown(df['year'].unique(), 
-                    df['year'].unique()[0], multi = True, id='year-dd')])
-        ]
-    ),
-    html.Div(className = 'filter-container',
-        children=[
+                    df['year'].unique()[0], multi = True, id='year-dd')]),
             html.Div(className='filter-div',
                 children = [html.Label('Select Disaster Type'),
                     dcc.Dropdown(df['disaster_type'].unique(), 
@@ -41,12 +37,13 @@ layout = html.Div(children=[
             )
         ]
     ),
-
+    html.Br(),
     html.Div(children=[
         dcc.Graph(
             id='scatter-fig'
         )
     ]),
+    html.Br(),
     html.Div(children=[
         dcc.Graph(
             id='pc-fig',
