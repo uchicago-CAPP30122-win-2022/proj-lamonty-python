@@ -9,7 +9,6 @@ Code relies on CensusData library, which uses Census API to pull
 data and returns it as a Pandas dataframe.
 CensusData information: https://pypi.org/project/CensusData/
 """
-# pip install CensusData
 import pandas as pd
 import regex as re
 import censusdata
