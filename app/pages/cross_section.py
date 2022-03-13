@@ -10,6 +10,9 @@ import json
 # We will need to filter for type separately from year/state, which go into the
 # API call.
 df = pd.read_csv('dummy_data.csv')
+marks_dict = {}
+for i in range(2005,2021):
+    marks_dict[i] = str(i)
 
 
 pc_fig = px.parallel_coordinates(df, color="aid",
@@ -23,10 +26,6 @@ layout = html.Div(children=[
                     dcc.Dropdown(df['state'].unique(), 
                     df['state'].unique()[0:3], multi = True, id='state-dd')]),
             html.Div(className='filter-div',
-                children = [html.Label('Select a Year'),
-                    dcc.Dropdown(df['year'].unique(), 
-                    df['year'].unique()[0], multi = True, id='year-dd')]),
-            html.Div(className='filter-div',
                 children = [html.Label('Select Disaster Type'),
                     dcc.Dropdown(df['disaster_type'].unique(), 
                     df['disaster_type'].unique()[0], multi = True, id='disaster-dd')]
@@ -38,12 +37,15 @@ layout = html.Div(children=[
         ]
     ),
     html.Br(),
+    html.Label('Select Year Range'),
+    dcc.RangeSlider(2005, 2020, 1, value=[2010, 2012], id='year-slider',
+    marks = marks_dict),
+    html.Br(),
     html.Div(children=[
         dcc.Graph(
             id='scatter-fig'
         )
     ]),
-    html.Br(),
     html.Div(children=[
         dcc.Graph(
             id='pc-fig',
@@ -64,11 +66,12 @@ layout = html.Div(children=[
     Output('scatter-fig', 'figure'),
     Output('pc-fig', 'figure'),
     Input('state-dd', 'value'),
-    Input('year-dd', 'value'),
+    Input('year-slider', 'value'),
     Input('disaster-dd', 'value'),
     Input('xaxis-dd', 'value')
 )
 def update_scatter(states, years, disasters, xaxis):
+    print('years', years)
     if not isinstance(states, list):
         states = [states]
     if not isinstance(years, list):
@@ -78,7 +81,8 @@ def update_scatter(states, years, disasters, xaxis):
 
     filtered_df = df[df['state'].isin(states) & 
         df['disaster_type'].isin(disasters) & 
-        df['year'].isin(years)]
+        (df['year'] >= years[0]) &
+        (df['year'] <= years[1])]
 
     scatter_fig = px.scatter(filtered_df, x=xaxis, y="aid",
         size="population", color="disaster_type", hover_name="county_id",

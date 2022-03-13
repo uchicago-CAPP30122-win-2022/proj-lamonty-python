@@ -37,7 +37,6 @@ app.layout = html.Div([
 @callback(Output('page-content', 'children'),
               Input('url', 'pathname'))
 def display_page(pathname):
-    print(pathname)
     if pathname == '/' or pathname == '/cross_section': # ZM: replace '/' gate with splash page?
         return cross_section.layout
     elif pathname == '/detail_view':
