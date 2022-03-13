@@ -46,12 +46,12 @@ class ACSapi(API):
             data using an API. It downloads the two separate tables, outputs them as
             pandas dataframes.
 
-        The two tables correspond to relevant variables pulled from the ***
-            and the Data Profiles tables, respectively. More information
+        The two tables correspond to relevant variables pulled from the Detail
+            Tables (detail) and the Data Profiles (dp), respectively. More information
             can be found in the links below:
 
-        Detail Tables: https://data.census.gov/cedsci/all?d=ACS%201-Year%20Estimates%20Detailed%20Tables
-        Data Profiles: https://www.census.gov/acs/www/data/data-tables-and-tools/data-profiles/
+        Detail: https://data.census.gov/cedsci/all?d=ACS%201-Year%20Estimates%20Detailed%20Tables
+        DP: https://www.census.gov/acs/www/data/data-tables-and-tools/data-profiles/
         '''
         for table,cols in self.table_dict.items():
             for year in self.years:
