@@ -24,5 +24,5 @@ def parse_restyle(input):
         range_pair = [i[0][0], i[0][1]]
         range_pairs.append(range_pair)
     
-    return (index[0][0], range_pairs[0])
+    return (int(index[0][0]), range_pairs[0])
 

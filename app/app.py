@@ -4,10 +4,10 @@ from dash_bootstrap_templates import load_figure_template
 from pages import cross_section, detail_view 
 
 
-app = Dash(__name__, suppress_callback_exceptions=True, external_stylesheets=[dbc.themes.CYBORG])
+app = Dash(__name__, suppress_callback_exceptions=True, external_stylesheets=[dbc.themes.SANDSTONE])
 server = app.server
 
-load_figure_template('cyborg')
+load_figure_template('sandstone')
 app.layout = html.Div([
     dbc.NavbarSimple(
     children=[
@@ -26,7 +26,7 @@ app.layout = html.Div([
     ],
     brand="FEMA Aid & Demographics",
     brand_href="#",
-    color="dark",
+    color="primary",
     dark=True, 
     ),
     dcc.Location(id='url', refresh=False),
