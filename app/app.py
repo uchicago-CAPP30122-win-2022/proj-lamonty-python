@@ -1,11 +1,34 @@
 from dash import Dash, dcc, html, Input, Output, callback
-from pages import cross_section, detail_view #ZM: Update detail_view once AR's view is in
+import dash_bootstrap_components as dbc
+from dash_bootstrap_templates import load_figure_template
+from pages import cross_section, detail_view 
 
 
-app = Dash(__name__, suppress_callback_exceptions=True)
+app = Dash(__name__, suppress_callback_exceptions=True, external_stylesheets=[dbc.themes.CYBORG])
 server = app.server
 
+load_figure_template('cyborg')
 app.layout = html.Div([
+    dbc.NavbarSimple(
+    children=[
+        dbc.NavItem(dbc.NavLink("Cross-Section", href="/cross_section")),
+        dbc.NavItem(dbc.NavLink("Deep Dive", href="/detail_view")),
+        dbc.DropdownMenu(
+            children=[
+                dbc.DropdownMenuItem("More pages", header=True),
+                dbc.DropdownMenuItem("Page 2", href="#"),
+                dbc.DropdownMenuItem("Page 3", href="#"),
+            ],
+            nav=True,
+            in_navbar=True,
+            label="More",
+        ),
+    ],
+    brand="FEMA Aid & Demographics",
+    brand_href="#",
+    color="dark",
+    dark=True, 
+    ),
     dcc.Location(id='url', refresh=False),
     html.Div(id='page-content')
 ])

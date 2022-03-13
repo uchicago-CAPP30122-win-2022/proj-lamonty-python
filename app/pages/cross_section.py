@@ -11,18 +11,11 @@ import json
 # API call.
 df = pd.read_csv('dummy_data.csv')
 
+
 pc_fig = px.parallel_coordinates(df, color="aid",
                               dimensions=df.columns[7:11])
 
 layout = html.Div(children=[
-    html.H1(
-        children='(la)Monty Python Dash Template',
-        style={
-            'textAlign': 'center'
-        }
-    ),
-    dcc.Link('Go to Detail View', href='/detail_view'), # placeholder for page 2 link
-
     html.Div(className = 'filter-container',
         children=[
             html.Div(className ='filter-div', 
