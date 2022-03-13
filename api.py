@@ -15,7 +15,7 @@ class API(ABC):
 	"""
 
 	@abstractmethod
-	def get(self):
+	def get_data(self):
 		"""
 		Method to get a request back from an API connection.
 

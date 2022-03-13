@@ -1,0 +1,51 @@
+"""
+(la)Monty Python
+Ali Klemencic
+March 2022
+
+Module to download data from ACS and FEMA
+and combine into a single dataframe.
+"""
+
+from fema_api import FEMAapi
+from acs_api import ACSapi
+
+
+def get_data(states, years):
+	fema_df = make_fema_api_call(states, years)
+	acs_df = make_acs_api_call(states, years)
+	final_df = pd.merge(acs_df, fema_df, how="left",
+	                    left_on=["county_fips", "state_fips", "year"],
+	                    right_on=["fips_county", "fips_state", "year"])
+	return final_df
+
+
+def make_fema_api_call(states, years):
+	"""
+    Creates an instance of the FEMAapi class
+    to get data for given states and years.
+
+    :param states: (lst) states to include
+    :param years: (lst) years to include
+
+    :return: Pandas dataframe of resulting FEMA data
+    """
+	fema_api_call = FEMAapi(states, years)
+	dataframes = fema_api_call.get_data()
+	fema_api_call.clean_data(dataframes)
+	return api_call.data
+
+
+def make_acs_api_call(states, years):
+	"""
+    Creates an instance of the ACSapi class
+    to get data for given states and years.
+
+    :param states: (lst) states to include
+    :param years: (lst) years to include
+
+    :return: Pandas dataframe of resulting ACS data
+    """
+	acs_api_call = ACSapi(states, years)
+	dataframe = acs_api_call.clean_data()
+	return dataframe

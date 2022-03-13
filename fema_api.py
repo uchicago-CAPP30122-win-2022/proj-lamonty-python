@@ -17,7 +17,7 @@ import pandas as pd
 from api import API
 
 
-class FemaAPI(API):
+class FEMAapi(API):
 	"""
 	Class to create an API connection to OpenFEMA for given states and years.
 	"""
@@ -160,7 +160,7 @@ class FemaAPI(API):
 		return dataframe
 
 
-	def get(self):
+	def get_data(self):
 		"""
 		Gets the data from API calls for each dataset.
 
@@ -201,9 +201,17 @@ class FemaAPI(API):
 			else:
 				self.data = self.data.join(df, on='disasterNumber')
 
-
-def make_fema_api_call(states, years):
-	api_call = FemaAPI(states, years)
-	dataframes = api_call.get()
-	api_call.clean_data(dataframes)
-	return api_call.data
+		self.data = self.data.rename(columns={'declarationDate': 'declaration_date',
+		                            'fyDeclared': 'year',
+		                            'incidentType': 'incident_type',
+		                            'declarationTitle': 'disaster_name',
+		                            'incidentBeginDate': 'incident_begin_date',
+		                            'incidentEndDate': 'incident_end_date',
+                                    'fipsStateCode': 'fips_state',
+                                    'fipsCountyCode': 'fips_county',
+		                            'totalAmountIhpApproved': 'total_approved_ihp',
+                                    'totalAmountHaApproved': 'total_approved_ha',
+		                            'totalAmountOnaApproved': 'total_approved_ona',
+                                    'totalObligatedAmountPa': 'total_obligated_pa',
+		                            'totalObligatedAmountCatC2g': 'total_obligated_catc2g',
+                                    'totalObligatedAmountHmgp': 'total_obligated_hmgp'})
