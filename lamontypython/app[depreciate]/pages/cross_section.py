@@ -67,34 +67,43 @@ layout = html.Div(children=[
             """),
             html.Pre(id='restyle-data-pc')
         ]),
+    dcc.Store(id='query-data'),
     dcc.Store(id='intermediate-value')
 ])
 
-
 @callback(
-    Output('pc-fig', 'figure'),
-    Output('intermediate-value', 'data'),
+    Output('query-data', 'data'),
     Input('state-dd', 'value'),
-    Input('year-slider', 'value'),
-    Input('disaster-dd', 'value')
+    Input('year-slider', 'value')
 )
-def update_figures(states, years, disasters):
-    print('state', states)
-    print('years',years)
+def query_api(states, years): #ZM: placeholder callback, update with actual API
     if not isinstance(states, list):
         states = [states]
     if not isinstance(years, list):
         years = [years]
-    if not isinstance(disasters, list):
-        disasters = [disasters]
-
-    filtered_df = df[df['state'].isin(states) & 
-        df['disaster_type'].isin(disasters) & 
+    # ZM: actual API should be called below instead of referencing df read in by
+    # pandas.
+    query_df = df[df['state'].isin(states) & 
         (df['year'] >= years[0]) &
         (df['year'] <= years[1])]
     
+    return query_df.to_json(date_format='iso', orient='split')
+
+@callback(
+    Output('pc-fig', 'figure'),
+    Output('intermediate-value', 'data'),
+    Input('query-data','data'),
+    Input('disaster-dd', 'value'),
+)
+def update_figures(query_df_json, disasters):
+    query_df = pd.read_json(query_df_json, orient='split')
+    if not isinstance(disasters, list):
+        disasters = [disasters]
+
+    filtered_df = query_df[query_df['disaster_type'].isin(disasters)]
+    
     pc_fig = px.parallel_coordinates(filtered_df, color="aid",
-                              dimensions=df.columns[START_INDEX:11]) #ZM: update indexes once we have full data
+                              dimensions=filtered_df.columns[START_INDEX:11]) #ZM: update indexes once we have full data
 
     return pc_fig, filtered_df.to_json(date_format='iso', orient='split')
 
@@ -122,7 +131,7 @@ def pc_highlight_scatter(restyleData, filtered_df_json, xaxis):
             (filtered_df[filtered_df.columns[col_index]]<=dim_range[1])].index.values
         #print('selected_points', selected_points)
         scatter_fig.update_traces(selectedpoints = selected_points,
-            unselected = {'marker': { 'opacity': 0.5 }})
+            unselected = {'marker': { 'opacity': 0.15 }})
 
     scatter_fig.update_layout()
     return scatter_fig
