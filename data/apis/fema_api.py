@@ -50,10 +50,10 @@ class FEMAapi(API):
         Gets the correct filter path for a DDS dataset API call.
         :return: (str) filter path
         """
-        filter_path = "&$filter="
+        filter_path = "&$filter=("
 
         for i, state in enumerate(self.states):
-            filter_path += f"(fipsStateCode eq '{state}'"
+            filter_path += f"fipsStateCode eq '{state}'"
             if i == len(self.states) - 1:
                 filter_path += ")"
             else:
@@ -61,8 +61,8 @@ class FEMAapi(API):
 
         for i, year in enumerate(self.years):
             if filter_path[-1] == ")":
-                filter_path += " and "
-            filter_path += f"(fyDeclared eq '{year}'"
+                filter_path += " and ("
+            filter_path += f"fyDeclared eq '{year}'"
             if i == len(self.years) - 1:
                 filter_path += ")"
             else:
@@ -76,10 +76,10 @@ class FEMAapi(API):
         Gets the correct filter path for a WDS dataset API call.
         :return: (str) filter path
         """
-        filter_path = "&$filter="
+        filter_path = "&$filter=("
 
         for i, num in enumerate(self.disasters):
-            filter_path += f'(disasterNumber eq {num}'
+            filter_path += f'disasterNumber eq {num}'
             if i == len(self.disasters) - 1:
                 filter_path += ")"
             else:
@@ -99,6 +99,11 @@ class FEMAapi(API):
         :return: (int) number of loops required
                 and (int) total record count
         """
+        print(cls.base_path
+            + cls.dataset_dict[dataset][0]
+            + cls.record_count_path
+            + filter_path)
+
         r = requests.get(
             cls.base_path
             + cls.dataset_dict[dataset][0]
