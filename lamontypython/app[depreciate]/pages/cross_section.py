@@ -46,19 +46,16 @@ layout = html.Div(children=[
         )
     ]),
     html.Br(),
-    html.Label('Select ranges along the parallel coordinates axes to highlight points in the scatter plot.'),
-    html.Div(children=[
-        dcc.Graph(
+    html.Label('Select a range along a parallel coordinates axis to highlight points in the scatter plot.'),
+    html.Div(id='pc-container', children=[
+        html.Div(className='buffer'),
+        html.Div(id='pc-plot',children=[
+            dcc.Graph(
             id='pc-fig'
         )
-    ]),
-     html.Div([
-            dcc.Markdown("""
-                **Restyle Data**
-                Print out for testing purposes. 
-            """),
-            html.Pre(id='restyle-data-pc')
         ]),
+        html.Div(className='buffer')
+    ]),
     dcc.Store(id='query-data'),
     dcc.Store(id='intermediate-value')
 ])
@@ -69,6 +66,19 @@ layout = html.Div(children=[
     Input('year-slider', 'value')
 )
 def query_api(states, years): #ZM: placeholder callback, update with actual API
+    '''
+    Load data from FEMA and ACS APIs into app using backend modules and user
+    inputs for states and years. Data is used for all visuals on cross-section
+    view.
+
+    Inputs:
+        states: a list of state names selected from the states dropdown in ui
+        years: a list of years selected from the years slider in ui
+
+    Outputs:
+        Joined data from FEMA and ACS data sources meeting input filter criteria,
+        converted to JSON for in-browser storage.
+    '''
     if not isinstance(states, list):
         states = [states]
     if not isinstance(years, list):
@@ -88,6 +98,21 @@ def query_api(states, years): #ZM: placeholder callback, update with actual API
     Input('disaster-dd', 'value'),
 )
 def update_pc_and_data(query_df_json, disasters):
+    '''
+    Filter the data returned by API call further based on user inputs for
+    specific disaster types.
+
+    Inputs:
+        query_df_json: json file from browser memory, originally created by FEMA
+            and ACS API call
+        disasters: a list of disaster types selected by user from ui dropdown
+    
+    Outputs:
+        pc_fig: a Dash parallel coorinates component
+        filtered_df: a filtered version of the original API query, which feeds
+        into the parallel coordinates and scatter plot graphs, converted to
+            JSON for in-browser storage
+    '''
     query_df = pd.read_json(query_df_json, orient='split')
     if not isinstance(disasters, list):
         disasters = [disasters]
@@ -96,6 +121,8 @@ def update_pc_and_data(query_df_json, disasters):
     
     pc_fig = px.parallel_coordinates(filtered_df, color="aid",
                               dimensions=filtered_df.columns[START_INDEX:11]) #ZM: update indexes once we have full data
+
+    pc_fig.update_layout(margin = dict(l = 25))
 
     return pc_fig, filtered_df.to_json(date_format='iso', orient='split')
 
@@ -106,7 +133,22 @@ def update_pc_and_data(query_df_json, disasters):
     Input('intermediate-value', 'data'),
     Input('xaxis-dd', 'value')
 )
-def pc_highlight_scatter(restyleData, filtered_df_json, xaxis):
+def modify_scatter(restyleData, filtered_df_json, xaxis):
+    '''
+    Modify the scatter plot based on user selections for x-axis variable and 
+    highlighted data ranges in the parallel coordinates plot. 
+
+    Inputs:
+        restyleData: range of user selection from interactive parallel
+            coordinates plot
+        filtered_df_json: json file from browser memory, created by
+            update_pc_and_data callback
+        xaxis: the variable selected by user from ui dropdown to display on
+            scatterplot x-axis
+
+    Outputs:
+        scatter_fig: a Dash scatterplot component
+    '''
     filtered_df = pd.read_json(filtered_df_json, orient='split')
     scatter_fig = px.scatter(filtered_df, x=xaxis, y="aid",
         size="population", color="disaster_type", hover_name="county_id",
