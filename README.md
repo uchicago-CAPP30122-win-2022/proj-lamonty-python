@@ -16,11 +16,9 @@ Measure impact of various demographic, economic, and/or political features on na
 flowchart LR
 db1[(FEMA)] --> py1([Python Connector])
 db2[(ACS)] --> py2([Python Connector])
-db3[(Census)] --> py3([Python Connector])
 
 py1 --> ag([Aggregation/Analysis])
 py2 --> ag([Aggregation/Analysis])
-py3 --> ag([Aggregation/Analysis])
 
 subgraph django
   vz[data viz]

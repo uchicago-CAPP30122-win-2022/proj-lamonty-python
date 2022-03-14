@@ -5,7 +5,6 @@ March 2022
 
 API to connect to OpenFEMA. Downloads data from the Disaster
 Declaration Summaries and Web Disaster Summaries datasets.
-
 Code adapted from OpenFEMA developer resources:
 https://www.fema.gov/about/openfema/developer-resources.
 """
@@ -18,9 +17,6 @@ from api import API
 
 
 class FEMAapi(API):
-    """
-    Class to create an API connection to OpenFEMA for given states and years.
-    """
     base_path = "https://www.fema.gov/api/open"
     record_count_path = "?$inlinecount=allpages&$select=id&$top=1"
     top = 1000
@@ -36,7 +32,6 @@ class FEMAapi(API):
     def __init__(self, states, years):
         """
         Constructor.
-
         :param states: list of states to filter on
         :param years: list of years to filter on
         """
@@ -49,7 +44,6 @@ class FEMAapi(API):
     def get_dds_filter_path(self):
         """
         Gets the correct filter path for a DDS dataset API call.
-
         :return: (str) filter path
         """
         filter_path = "&$filter="
@@ -76,7 +70,6 @@ class FEMAapi(API):
     def get_wds_filter_path(self):
         """
         Gets the correct filter path for a WDS dataset API call.
-
         :return: (str) filter path
         """
         filter_path = "&$filter="
@@ -95,10 +88,10 @@ class FEMAapi(API):
         """
         Class method to get the number of loops required to
         access every row in the dataset via a quick API call.
-
         :param dataset: (str) name of the dataset to access
         :param filter_path: (str) filters for the API call
-
+        :param dataset: (str) name of the dataset to access
+        :param filter_path: (str) filters for the API call
         :return: (int) number of loops required
                 and (int) total record count
         """
@@ -122,11 +115,12 @@ class FEMAapi(API):
         """
         Calls the API, looping to get all records, and
         generates a dataframe from the resulting json data.
-
         :param dataset: (str) dataset to connect to
         :param filter_path: (str) filter path
         :param loop_num: (int) number of iterations required
-
+        :param dataset: (str) dataset to connect to
+        :param filter_path: (str) filter path
+        :param loop_num: (int) number of iterations required
         :return: Pandas dataframe with resulting API call data
         """
         endpoint, select_path = self.dataset_dict[dataset]
@@ -163,7 +157,6 @@ class FEMAapi(API):
     def get_data(self):
         """
         Gets the data from API calls for each dataset.
-
         :return: (dict) Pandas dataframes for each dataset
         """
         dataframes = {}
@@ -189,7 +182,6 @@ class FEMAapi(API):
     def clean_data(self, dataframes):
         """
         Merges data returned by the API calls.
-
         :param dataframes: (dict) Pandas dataframes
                             for each dataset
         """
