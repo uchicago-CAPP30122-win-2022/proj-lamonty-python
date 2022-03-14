@@ -8,20 +8,13 @@ import pandas as pd
 import json
 import helper.parse_restyle
 
-# ZM: make a callback for getting data from API
-# We will need to filter for type separately from year/state, which go into the
-# API call.
-START_INDEX = 7
+START_INDEX = 7 #ZM: Update index 
 START_YEAR = 2010
 END_YEAR = 2019
 df = pd.read_csv('dummy_data.csv')
 marks_dict = {}
 for i in range(START_YEAR, END_YEAR + 1):
     marks_dict[i] = str(i)
-
-
-pc_fig = px.parallel_coordinates(df, color="aid",
-                              dimensions=df.columns[START_INDEX:11])
 
 layout = html.Div(children=[
     html.Div(className = 'filter-container',
@@ -56,8 +49,7 @@ layout = html.Div(children=[
     html.Label('Select ranges along the parallel coordinates axes to highlight points in the scatter plot.'),
     html.Div(children=[
         dcc.Graph(
-            id='pc-fig',
-            figure=pc_fig
+            id='pc-fig'
         )
     ]),
      html.Div([
@@ -95,7 +87,7 @@ def query_api(states, years): #ZM: placeholder callback, update with actual API
     Input('query-data','data'),
     Input('disaster-dd', 'value'),
 )
-def update_figures(query_df_json, disasters):
+def update_pc_and_data(query_df_json, disasters):
     query_df = pd.read_json(query_df_json, orient='split')
     if not isinstance(disasters, list):
         disasters = [disasters]
@@ -119,7 +111,8 @@ def pc_highlight_scatter(restyleData, filtered_df_json, xaxis):
     scatter_fig = px.scatter(filtered_df, x=xaxis, y="aid",
         size="population", color="disaster_type", hover_name="county_id",
         size_max=60)
-
+    #ZM: only handles dim_range of length one and doesn't support multiple axes
+    # some stateful way to track range selection history?
     if restyleData and None not in restyleData[0].values():
         print('restyleData', list(restyleData[0].values()))
         dim_index, dim_range = parse_restyle.parse_restyle(restyleData)
