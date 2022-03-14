@@ -2,7 +2,6 @@ import json
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-
 from dash import Dash, html, dcc, Input, Output
 import pandas as pd
 
@@ -14,7 +13,7 @@ df = winner.loc[winner['year'] == 2016]
 hurricane_path = pd.read_csv("hurricane_path.csv")
 
 hurricanes = hurricane_path['NAME'].unique()
-harvey_data = hurricane_path .loc[(hurricane_path ['NAME'] == 'HARVEY')]
+hurricane_df = hurricane_path.loc[(hurricane_path ['NAME'] == 'HARVEY')]
 ##########
 
 fig = px.choropleth_mapbox(df, geojson=counties, locations='county_fips',
@@ -25,11 +24,11 @@ fig = px.choropleth_mapbox(df, geojson=counties, locations='county_fips',
                            opacity=0.3,
                           )
 #fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
-fig.add_scattermapbox(lat = harvey_data['LAT'],
-                      lon = harvey_data['LON'],
+fig.add_scattermapbox(lat = hurricane_df['LAT'],
+                      lon = hurricane_df['LON'],
                       mode = 'markers+text',
                       #text = harvey_data['STORM_SPEED'].,
-                      marker_size=harvey_data['STORM_SPEED'],
+                      marker_size= hurricane_df['STORM_SPEED'],
                       marker_color='rgb(0,102,255)',
                       showlegend = False
 )

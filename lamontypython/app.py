@@ -2,6 +2,7 @@ from dash import Dash, dcc, html, Input, Output, callback
 import dash_bootstrap_components as dbc
 from dash_bootstrap_templates import load_figure_template
 from pages import cross_section, detail_view 
+from backend import datasets
 
 
 app = Dash(__name__, suppress_callback_exceptions=True, external_stylesheets=[dbc.themes.SANDSTONE])
