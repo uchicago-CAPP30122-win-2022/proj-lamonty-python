@@ -2,3 +2,13 @@
     width: 33%;
     display: inline-block;
 }
+
+.buffer {
+    width: 5%;
+    display: inline-block;
+}
+
+#pc-plot {
+    width: 85%;
+    display: inline-block;
+}
