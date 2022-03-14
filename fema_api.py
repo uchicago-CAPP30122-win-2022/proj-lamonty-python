@@ -2,6 +2,7 @@
 (la)Monty Python
 Ali Klemencic
 March 2022
+
 API to connect to OpenFEMA. Downloads data from the Disaster
 Declaration Summaries and Web Disaster Summaries datasets.
 Code adapted from OpenFEMA developer resources:
@@ -16,9 +17,6 @@ from api import API
 
 
 class FEMAapi(API):
-    """
-    Class to create an API connection to OpenFEMA for given states and years.
-    """
     base_path = "https://www.fema.gov/api/open"
     record_count_path = "?$inlinecount=allpages&$select=id&$top=1"
     top = 1000
@@ -92,6 +90,8 @@ class FEMAapi(API):
         access every row in the dataset via a quick API call.
         :param dataset: (str) name of the dataset to access
         :param filter_path: (str) filters for the API call
+        :param dataset: (str) name of the dataset to access
+        :param filter_path: (str) filters for the API call
         :return: (int) number of loops required
                 and (int) total record count
         """
@@ -115,6 +115,9 @@ class FEMAapi(API):
         """
         Calls the API, looping to get all records, and
         generates a dataframe from the resulting json data.
+        :param dataset: (str) dataset to connect to
+        :param filter_path: (str) filter path
+        :param loop_num: (int) number of iterations required
         :param dataset: (str) dataset to connect to
         :param filter_path: (str) filter path
         :param loop_num: (int) number of iterations required
