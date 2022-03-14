@@ -32,6 +32,13 @@ class FemaAPI(API):
 	                        obligationAmount,projectedCompletionDate""")}
 
 	def __init__(self, states, years):
+		'''
+		Constructor.
+
+		Parameters:
+			-states: list of states to filter on
+			-years: list of years to filter on
+		'''
 		self.states = states
 		self.years = years
 		self.disasters = None
