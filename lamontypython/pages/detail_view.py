@@ -15,14 +15,19 @@ df = winner.loc[winner['year'] == 2016]
 hurricane_path = pd.read_csv("data/hurricane_path.csv")
 hurricanes = hurricane_path['NAME'].unique()
 hurricane_df = hurricane_path.loc[(hurricane_path ['NAME'] == 'HARVEY')]
+data = datasets.get_data(["48"], [2017])
+merged_df= pd.merge(df, data, how="left", on = 'county_fips')
+print(merged_df.columns)
 ##########
 
-fig = px.choropleth_mapbox(df, geojson=counties, locations='county_fips',
-                           color = 'party',
-                           mapbox_style="open-street-map",
-                           zoom=3, 
-                           center = {"lat": 37.0902, "lon": -95.7129},
-                           opacity=0.3,
+fig = px.choropleth_mapbox(merged_df, geojson=counties, 
+                          locations='county_fips',
+                          hover_name = 'county_name',
+                          color = 'party',
+                          mapbox_style="open-street-map",
+                          zoom=3, 
+                          center = {"lat": 37.0902, "lon": -95.7129},
+                          opacity=0.3,
                           )
 #fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
 fig.add_scattermapbox(lat = hurricane_df['LAT'],

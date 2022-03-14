@@ -17,6 +17,9 @@ from backend.api import API
 
 
 class FEMAapi(API):
+    """
+    Class to connect to OPENFema via API.
+    """
     base_path = "https://www.fema.gov/api/open"
     record_count_path = "?$inlinecount=allpages&$select=id&$top=1"
     top = 1000
@@ -208,3 +211,12 @@ class FEMAapi(API):
                                     'totalObligatedAmountCategoryAb': 'total_obligated_ab',
                                     'totalObligatedAmountCatC2g': 'total_obligated_c2g',
                                     'totalObligatedAmountHmgp': 'total_obligated_hmgp'})
+
+        self.data['total_approved'] = self.data.get('total_approved_ihp') \
+                                      + self.data.get('total_approved_ha') \
+                                      + self.data.get('total_approved_ona')
+
+        self.data['total_obligated'] = self.data.get('total_obligated_pa') \
+                                        + self.data.get('total_obligated_ab') \
+                                        + self.data.get('total_obligated_c2g') \
+                                        + self.data.get('total_obligated_hmgp')
