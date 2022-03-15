@@ -79,7 +79,7 @@ class ACSapi(API):
         self.dp_df = self.make_state_county(self.dp_df)
         self.detail_df = self.make_state_county(self.detail_df)
 
-        pd.merge(self.detail_df, self.dp_df, on = ['state_fips','county_fips'], how = 'inner')
+        final_df = pd.merge(self.detail_df, self.dp_df, on = ['state_fips','county_fips'], how = 'inner')
         final_df = final_df.rename(columns={"B01003_001E":"population",
                 "B05012_003E":"foreign_born","B06011_001E":"median_income",
                 "DP05_0038PE":"black_afam","DP03_0005PE":"unemp_rate",
