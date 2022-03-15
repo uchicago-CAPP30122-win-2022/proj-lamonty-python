@@ -22,8 +22,7 @@ class ACSapi(API):
     '''
     table_dict = {"detail": ['B01003_001E','B05012_003E','B06011_001E'],
                 "dp": ['DP05_0038PE','DP03_0005PE','DP03_0074PE','DP03_0096PE',
-                    'DP04_0003PE','DP04_0005E','DP04_0047PE','DP04_0089E','DP04_0134E',
-                    'DP04_0142PE']}
+                    'DP04_0003PE','DP04_0005E','DP04_0047PE','DP04_0089E','DP04_0134E']}
 
     def __init__(self, states, years):
         '''
@@ -84,7 +83,7 @@ class ACSapi(API):
                 "DP03_0074PE":"snap_benefits", "DP03_0096PE":"health_insurance_rate",
                 "DP04_0003PE":"vacant_housing_rate", "DP04_0005E":"rental_vacancy_rate",
                 "DP04_0047PE":"renter_occupied_rate","DP04_0089E":"median_home_price",
-                "DP04_0134E":"median_rent", "DP04_0142PE":"rent_burden_rate"})
+                "DP04_0134E":"median_rent"})
 
         final_df = final_df.dropna()
 
