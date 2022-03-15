@@ -35,10 +35,15 @@ def get_data(states, years):
     """
     fema_df = make_fema_api_call(states, years)
     acs_df = make_acs_api_call(states, years)
+
     merged_df = pd.merge(acs_df, fema_df, how="left",
                         left_on=["county_fips", "state_fips", "year"],
                         right_on=["county_fips", "state_fips", "year"])
+
     merged_df['aid_per_capita'] = merged_df['aid_requested'] / merged_df['population']
+
+    merged_df = merged_df[merged_df['disaster_number'].notna()]
+    merged_df = merged_df.fillna(0)
 
     return merged_df
 

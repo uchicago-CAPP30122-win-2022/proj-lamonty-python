@@ -205,6 +205,14 @@ class FEMAapi(API):
 
 
     def clean_ms_data(self, dataframe):
+        """
+        Cleans the MS dataframe and merges with the
+        zip code and FIPS county code dataframe.
+
+        :param dataframe: Pandas dataframe with MS data
+
+        :return: Pandas dataframe of MS data merged with FIPS county codes
+        """
         dataframe['zip'] = dataframe['zip'].astype(str)
         merged_df = pd.merge(dataframe, self.zip_df, how="left",
                             left_on=['zip'], right_on=['ZIP'])
@@ -232,7 +240,8 @@ class FEMAapi(API):
         self.data = pd.merge(self.data, ms_df, how="left",
                              left_on=['fipsCountyCode'], right_on=['county_fips'])
 
-        self.data = self.data.rename(columns={'declarationDate': 'declaration_date',
+        self.data = self.data.rename(columns={'disasterNumber': 'disaster_number',
+                                    'declarationDate': 'declaration_date',
                                     'fyDeclared': 'year',
                                     'incidentType': 'incident_type',
                                     'declarationTitle': 'disaster_name',
@@ -250,13 +259,11 @@ class FEMAapi(API):
                                     'requestedAmount': 'aid_requested',
                                     'obligationAmount': 'aid_obligated'})
 
-        self.data['total_approved'] = self.data.get('total_approved_ihp', 0) \
-                                      + self.data.get('total_approved_ha', 0) \
-                                      + self.data.get('total_approved_ona', 0)
+        self.data['total_approved'] = (self.data.get('total_approved_ihp', 0)
+                                      + self.data.get('total_approved_ha', 0)
+                                      + self.data.get('total_approved_ona', 0))
 
-        self.data['total_obligated'] = self.data.get('total_obligated_pa', 0) \
-                                        + self.data.get('total_obligated_ab', 0) \
-                                        + self.data.get('total_obligated_c2g', 0) \
-                                        + self.data.get('total_obligated_hmgp', 0)
-
-
+        self.data['total_obligated'] = (self.data.get('total_obligated_pa', 0)
+                                        + self.data.get('total_obligated_ab', 0)
+                                        + self.data.get('total_obligated_c2g', 0)
+                                        + self.data.get('total_obligated_hmgp', 0))
