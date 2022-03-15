@@ -7,8 +7,19 @@ Module to download data from ACS and FEMA
 and combine into a single dataframe.
 """
 
-from fema_api import FEMAapi
-from acs_api import ACSapi
+import pandas as pd
+from backend.fema_api import FEMAapi
+from backend.acs_api import ACSapi
+
+
+def write_data_to_csv(dataframe, filename):
+    """
+    Writes data to a csv.
+
+    :param dataframe: Pandas dataframe
+    :param filename: (str) name of file to write to
+    """
+    dataframe.to_csv(filename, index=False)
 
 
 def get_data(states, years):
@@ -24,10 +35,17 @@ def get_data(states, years):
     """
     fema_df = make_fema_api_call(states, years)
     acs_df = make_acs_api_call(states, years)
-    final_df = pd.merge(acs_df, fema_df, how="left",
+
+    merged_df = pd.merge(acs_df, fema_df, how="left",
                         left_on=["county_fips", "state_fips", "year"],
-                        right_on=["fips_county", "fips_state", "year"])
-    return final_df
+                        right_on=["county_fips", "state_fips", "year"])
+
+    merged_df['aid_per_capita'] = merged_df['aid_requested'] / merged_df['population']
+
+    merged_df = merged_df[merged_df['disaster_number'].notna()]
+    merged_df = merged_df.fillna(0)
+
+    return merged_df
 
 
 def make_fema_api_call(states, years):
@@ -43,7 +61,7 @@ def make_fema_api_call(states, years):
     fema_api_call = FEMAapi(states, years)
     dataframes = fema_api_call.get_data()
     fema_api_call.clean_data(dataframes)
-    return api_call.data
+    return fema_api_call.data
 
 
 def make_acs_api_call(states, years):

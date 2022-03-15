@@ -12,7 +12,7 @@ CensusData information: https://pypi.org/project/CensusData/
 import pandas as pd
 import regex as re
 import censusdata
-from api import API
+from backend.api import API
 pd.set_option('display.expand_frame_repr', False)
 pd.set_option('display.precision', 2)
 
@@ -21,9 +21,8 @@ class ACSapi(API):
     Class built to pull ACS data.
     '''
     table_dict = {"detail": ['B01003_001E','B05012_003E','B06011_001E'],
-                "dp": ['DP05_0038PE','DP02_0152PE','DP03_0005PE','DP03_0074PE','DP03_0096PE',
-                    'DP04_0003PE','DP04_0005E','DP04_0047PE','DP04_0089E','DP04_0134E',
-                    'DP04_0142PE']}
+                "dp": ['DP05_0038PE','DP03_0005PE','DP03_0074PE','DP03_0096PE',
+                    'DP04_0003PE','DP04_0005E','DP04_0047PE','DP04_0089E','DP04_0134E']}
 
     def __init__(self, states, years):
         '''
@@ -76,15 +75,17 @@ class ACSapi(API):
         '''
 
         self.get_data()
+        self.detail_df = self.make_state_county(self.detail_df)
+        self.dp_df = self.make_state_county(self.dp_df)
 
-        final_df = self.detail_df.merge(self.dp_df, left_index=True, right_index=True)
+        final_df = pd.merge(self.detail_df, self.dp_df, on = ['state_fips','county_fips'], how = 'inner')
         final_df = final_df.rename(columns={"B01003_001E":"population",
-                "B05012_003E":"foreign_born","B06011_001E":"median_income","DP05_0038PE":"black_afam",
-                "DP02_0152PE":"pct_with_computer","DP03_0005PE":"unemp_rate",
+                "B05012_003E":"foreign_born","B06011_001E":"median_income",
+                "DP05_0038PE":"black_afam","DP03_0005PE":"unemp_rate",
                 "DP03_0074PE":"snap_benefits", "DP03_0096PE":"health_insurance_rate",
                 "DP04_0003PE":"vacant_housing_rate", "DP04_0005E":"rental_vacancy_rate",
                 "DP04_0047PE":"renter_occupied_rate","DP04_0089E":"median_home_price",
-                "DP04_0134E":"median_rent", "DP04_0142PE":"rent_burden_rate"})
+                "DP04_0134E":"median_rent"})
 
         final_df = final_df.dropna()
 
@@ -93,20 +94,26 @@ class ACSapi(API):
 
         final_df["foreign_born"] = 100*(final_df["foreign_born"]/final_df["population"])
 
+        final_df = final_df.loc[final_df['state_fips'].isin(self.states)]
+
+        return final_df
+
+    def make_state_county(self,data):
+        '''
+        Class method to generate state and county FIPS code from ACS index.
+        '''
         state_list = []
         county_list = []
-        for row in final_df.index:
+        for row in data.index:
             row = str(row)
             _, state, county = re.findall('[0-9]+', row)
             state_list.append(state)
             county_list.append(county)
 
-        final_df['state_fips'] = state_list
-        final_df['county_fips'] = county_list
+        data['state_fips'] = state_list
+        data['county_fips'] = county_list
 
-        final_df = final_df.loc[final_df['state_fips'].isin(self.states)]
-
-        return final_df
+        return data
 
 
 def make_acs_api_call(states,years):

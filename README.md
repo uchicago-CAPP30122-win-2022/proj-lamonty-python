@@ -20,11 +20,12 @@ db2[(ACS)] --> py2([Python Connector])
 py1 --> ag([Aggregation/Analysis])
 py2 --> ag([Aggregation/Analysis])
 
-subgraph django
-  vz[data viz]
+subgraph dash
+  cs[Cross Section View]
+  dd[Deep Dive View]
 end
 
-ag --> django
+ag --> dash
 
 
 ```
