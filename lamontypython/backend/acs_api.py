@@ -21,7 +21,7 @@ class ACSapi(API):
     Class built to pull ACS data.
     '''
     table_dict = {"detail": ['B01003_001E','B05012_003E','B06011_001E'],
-                "dp": ['DP05_0038PE','DP02_0152PE','DP03_0005PE','DP03_0074PE','DP03_0096PE',
+                "dp": ['DP05_0038PE','DP03_0005PE','DP03_0074PE','DP03_0096PE',
                     'DP04_0003PE','DP04_0005E','DP04_0047PE','DP04_0089E','DP04_0134E',
                     'DP04_0142PE']}
 
@@ -79,8 +79,8 @@ class ACSapi(API):
 
         final_df = self.detail_df.merge(self.dp_df, left_index=True, right_index=True)
         final_df = final_df.rename(columns={"B01003_001E":"population",
-                "B05012_003E":"foreign_born","B06011_001E":"median_income","DP05_0038PE":"black_afam",
-                "DP02_0152PE":"pct_with_computer","DP03_0005PE":"unemp_rate",
+                "B05012_003E":"foreign_born","B06011_001E":"median_income",
+                "DP05_0038PE":"black_afam","DP03_0005PE":"unemp_rate",
                 "DP03_0074PE":"snap_benefits", "DP03_0096PE":"health_insurance_rate",
                 "DP04_0003PE":"vacant_housing_rate", "DP04_0005E":"rental_vacancy_rate",
                 "DP04_0047PE":"renter_occupied_rate","DP04_0089E":"median_home_price",
