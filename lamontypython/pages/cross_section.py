@@ -11,7 +11,6 @@ import helper.parse_restyle
 START_IV_IDX = 0 #ZM: Update index 
 END_IV_IDX = 14
 DV_NAME = 'aid_per_capita'
-
 START_YEAR = 2010
 END_YEAR = 2019
 df = pd.read_csv('data/dummy_data.csv')
@@ -130,7 +129,6 @@ def update_pc_and_data(query_df_json, disasters):
     pc_fig.update_layout(margin = dict(l = 25))
 
     return pc_fig, filtered_df.to_json(date_format='iso', orient='split')
-
 
 @callback(
     Output('scatter-fig', 'figure'),
