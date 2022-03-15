@@ -7,9 +7,9 @@ Module to download data from ACS and FEMA
 and combine into a single dataframe.
 """
 
-from backend.fema_api import FEMAapi
-from backend.acs_api import ACSapi
 import pandas as pd
+from data.apis.fema_api import FEMAapi
+from data.apis.acs_api import ACSapi
 
 
 def write_data_to_csv(dataframe, filename):
@@ -33,14 +33,13 @@ def get_data(states, years):
     :return: Pandas dataframe of the combined FEMA
             and ACS data for the given years
     """
+    fema_df = make_fema_api_call(states, years)
     acs_df = make_acs_api_call(states, years)
-    try:
-        fema_df = make_fema_api_call(states, years)
-    except ValueError: 
-        return acs_df
     merged_df = pd.merge(acs_df, fema_df, how="left",
                         left_on=["county_fips", "state_fips", "year"],
-                        right_on=["fips_county", "fips_state", "year"])
+                        right_on=["county_fips", "state_fips", "year"])
+    merged_df['aid_per_capita'] = merged_df['total_approved'] / merged_df['population']
+
     return merged_df
 
 
