@@ -8,7 +8,10 @@ import pandas as pd
 import json
 import helper.parse_restyle
 
-START_INDEX = 7 #ZM: Update index 
+START_IV_IDX = 0 #ZM: Update index 
+END_IV_IDX = 14
+DV_NAME = 'aid_per_capita'
+
 START_YEAR = 2010
 END_YEAR = 2019
 df = pd.read_csv('data/dummy_data.csv')
@@ -22,23 +25,25 @@ layout = html.Div(children=[
             html.Div(className ='filter-div', 
                 children = [html.Label('Select a State'),
                     dcc.Dropdown(df['state'].unique(), 
-                    df['state'].unique()[0:3], multi = True, id='state-dd')]),
+                    df['state'].unique()[0:3], multi = True, id='state-dd')]),#ZM: replace with state name from JSON
             html.Div(className='filter-div',
                 children = [html.Label('Select Disaster Type'),
-                    dcc.Dropdown(df['disaster_type'].unique(), 
+                    dcc.Dropdown(df['incident_type'].unique(), 
                     df['disaster_type'].unique()[0], multi = True, id='disaster-dd')]
             ),
             html.Div(className='filter-div',
                     children=[html.Label('Select X Axis Variable'),
-                    dcc.Dropdown(df.columns[START_INDEX:11], 
-                        df.columns[START_INDEX], id='xaxis-dd')] # ZM: update indexes once we have real data 
+                    dcc.Dropdown(df.columns[START_IV_IDX:END_IV_IDX], 
+                        df.columns[START_IV_IDX], id='xaxis-dd')] # ZM: update indexes once we have real data 
             )
         ]
     ),
     html.Br(),
     html.Label('Select Year Range'),
-    dcc.RangeSlider(START_YEAR, END_YEAR, 1, value=[2010, 2012], id='year-slider',
-    marks = marks_dict),
+    dcc.RangeSlider(START_YEAR, END_YEAR, 1, value=[START_YEAR, START_YEAR + 2], 
+        id='year-slider',
+        marks = marks_dict
+    ),
     html.Br(),
     html.Div(children=[
         dcc.Graph(
@@ -119,8 +124,8 @@ def update_pc_and_data(query_df_json, disasters):
 
     filtered_df = query_df[query_df['disaster_type'].isin(disasters)]
     
-    pc_fig = px.parallel_coordinates(filtered_df, color="aid",
-                              dimensions=filtered_df.columns[START_INDEX:11]) #ZM: update indexes once we have full data
+    pc_fig = px.parallel_coordinates(filtered_df, color="aid_per_capita",
+                              dimensions=filtered_df.columns[START_IV_IDX:END_IV_IDX]) #ZM: update indexes once we have full data
 
     pc_fig.update_layout(margin = dict(l = 25))
 
@@ -150,15 +155,15 @@ def modify_scatter(restyleData, filtered_df_json, xaxis):
         scatter_fig: a Dash scatterplot component
     '''
     filtered_df = pd.read_json(filtered_df_json, orient='split')
-    scatter_fig = px.scatter(filtered_df, x=xaxis, y="aid",
-        size="population", color="disaster_type", hover_name="county_id",
+    scatter_fig = px.scatter(filtered_df, x=xaxis, y="aid_per_capita",
+        size="population", color="disaster_type", hover_name="county_fips",
         size_max=60)
     #ZM: only handles dim_range of length one and doesn't support multiple axes
     # some stateful way to track range selection history?
     if restyleData and None not in restyleData[0].values():
-        print('restyleData', list(restyleData[0].values()))
+        #print('restyleData', list(restyleData[0].values()))
         dim_index, dim_range = parse_restyle.parse_restyle(restyleData)
-        col_index = START_INDEX + dim_index
+        col_index = START_IV_IDX + dim_index
         #print('col_index', col_index)
         #print('dim_range',dim_range)
 
