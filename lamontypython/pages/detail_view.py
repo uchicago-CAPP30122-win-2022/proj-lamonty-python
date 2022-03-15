@@ -27,6 +27,7 @@ fig = px.choropleth_mapbox(merged_df, geojson=counties,
                           mapbox_style="open-street-map",
                           zoom=3, 
                           center = {"lat": 37.0902, "lon": -95.7129},
+                          color_discrete_sequence=px.colors.qualitative.Set1,
                           opacity=0.3,
                           )
 #fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
@@ -35,7 +36,7 @@ fig.add_scattermapbox(lat = hurricane_df['LAT'],
                       mode = 'markers+text',
                       #text = harvey_data['STORM_SPEED'].,
                       marker_size= hurricane_df['STORM_SPEED'],
-                      marker_color='rgb(0,102,255)',
+                      marker_color='rgb(255, 222, 113)',
                       showlegend = False
 )
 
