@@ -63,7 +63,6 @@ class ACSapi(API):
                     dp_year = censusdata.download('acs1', year,
                                     censusdata.censusgeo([('county', '*')]),
                                    cols, tabletype='profile')
-                    dp_year['year'] = year
                     self.dp_df = pd.concat([self.dp_df,dp_year])
 
 
@@ -76,8 +75,8 @@ class ACSapi(API):
         '''
 
         self.get_data()
-        self.dp_df = self.make_state_county(self.dp_df)
         self.detail_df = self.make_state_county(self.detail_df)
+        self.dp_df = self.make_state_county(self.dp_df)
 
         final_df = pd.merge(self.detail_df, self.dp_df, on = ['state_fips','county_fips'], how = 'inner')
         final_df = final_df.rename(columns={"B01003_001E":"population",
