@@ -8,8 +8,8 @@ and combine into a single dataframe.
 """
 
 import pandas as pd
-from data.apis.fema_api import FEMAapi
-from data.apis.acs_api import ACSapi
+from backend.fema_api import FEMAapi
+from backend.acs_api import ACSapi
 
 
 def write_data_to_csv(dataframe, filename):
@@ -38,7 +38,7 @@ def get_data(states, years):
     merged_df = pd.merge(acs_df, fema_df, how="left",
                         left_on=["county_fips", "state_fips", "year"],
                         right_on=["county_fips", "state_fips", "year"])
-    merged_df['aid_per_capita'] = merged_df['total_approved'] / merged_df['population']
+    merged_df['aid_per_capita'] = merged_df['aid_requested'] / merged_df['population']
 
     return merged_df
 
