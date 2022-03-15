@@ -63,6 +63,7 @@ class ACSapi(API):
                     dp_year = censusdata.download('acs1', year,
                                     censusdata.censusgeo([('county', '*')]),
                                    cols, tabletype='profile')
+                    dp_year['year'] = year
                     self.dp_df = pd.concat([self.dp_df,dp_year])
 
 
@@ -75,8 +76,10 @@ class ACSapi(API):
         '''
 
         self.get_data()
+        self.dp_df = self.make_state_county(self.dp_df)
+        self.detail_df = self.make_state_county(self.detail_df)
 
-        final_df = self.detail_df.merge(self.dp_df, left_index=True, right_index=True)
+        pd.merge(self.detail_df, self.dp_df, on = ['state_fips','county_fips'], how = 'inner')
         final_df = final_df.rename(columns={"B01003_001E":"population",
                 "B05012_003E":"foreign_born","B06011_001E":"median_income",
                 "DP05_0038PE":"black_afam","DP03_0005PE":"unemp_rate",
@@ -92,20 +95,26 @@ class ACSapi(API):
 
         final_df["foreign_born"] = 100*(final_df["foreign_born"]/final_df["population"])
 
+        final_df = final_df.loc[final_df['state_fips'].isin(self.states)]
+
+        return final_df
+
+    def make_state_county(self,data):
+        '''
+        Class method to generate state and county FIPS code from ACS index.
+        '''
         state_list = []
         county_list = []
-        for row in final_df.index:
+        for row in data.index:
             row = str(row)
             _, state, county = re.findall('[0-9]+', row)
             state_list.append(state)
             county_list.append(county)
 
-        final_df['state_fips'] = state_list
-        final_df['county_fips'] = county_list
+        data['state_fips'] = state_list
+        data['county_fips'] = county_list
 
-        final_df = final_df.loc[final_df['state_fips'].isin(self.states)]
-
-        return final_df
+        return data
 
 
 def make_acs_api_call(states,years):
