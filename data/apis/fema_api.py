@@ -36,6 +36,7 @@ class FEMAapi(API):
     def __init__(self, states, years):
         """
         Constructor.
+
         :param states: list of states to filter on
         :param years: list of years to filter on
         """
@@ -48,6 +49,7 @@ class FEMAapi(API):
     def get_dds_filter_path(self):
         """
         Gets the correct filter path for a DDS dataset API call.
+
         :return: (str) filter path
         """
         filter_path = "&$filter=("
@@ -74,6 +76,7 @@ class FEMAapi(API):
     def get_wds_filter_path(self):
         """
         Gets the correct filter path for a WDS dataset API call.
+
         :return: (str) filter path
         """
         filter_path = "&$filter=("
@@ -92,18 +95,13 @@ class FEMAapi(API):
         """
         Class method to get the number of loops required to
         access every row in the dataset via a quick API call.
+
         :param dataset: (str) name of the dataset to access
         :param filter_path: (str) filters for the API call
-        :param dataset: (str) name of the dataset to access
-        :param filter_path: (str) filters for the API call
+
         :return: (int) number of loops required
                 and (int) total record count
         """
-        print(cls.base_path
-            + cls.dataset_dict[dataset][0]
-            + cls.record_count_path
-            + filter_path)
-
         r = requests.get(
             cls.base_path
             + cls.dataset_dict[dataset][0]
@@ -124,12 +122,11 @@ class FEMAapi(API):
         """
         Calls the API, looping to get all records, and
         generates a dataframe from the resulting json data.
+
         :param dataset: (str) dataset to connect to
         :param filter_path: (str) filter path
         :param loop_num: (int) number of iterations required
-        :param dataset: (str) dataset to connect to
-        :param filter_path: (str) filter path
-        :param loop_num: (int) number of iterations required
+
         :return: Pandas dataframe with resulting API call data
         """
         endpoint, select_path = self.dataset_dict[dataset]
@@ -166,6 +163,7 @@ class FEMAapi(API):
     def get_data(self):
         """
         Gets the data from API calls for each dataset.
+
         :return: (dict) Pandas dataframes for each dataset
         """
         dataframes = {}
@@ -191,8 +189,8 @@ class FEMAapi(API):
     def clean_data(self, dataframes):
         """
         Merges data returned by the API calls.
-        :param dataframes: (dict) Pandas dataframes
-                            for each dataset
+
+        :param dataframes: (dict) Pandas dataframes for each dataset
         """
         for _, df in dataframes.items():
             df = df.drop(['id'], axis=1)
@@ -208,8 +206,8 @@ class FEMAapi(API):
                                     'declarationTitle': 'disaster_name',
                                     'incidentBeginDate': 'incident_begin_date',
                                     'incidentEndDate': 'incident_end_date',
-                                    'fipsStateCode': 'fips_state',
-                                    'fipsCountyCode': 'fips_county',
+                                    'fipsStateCode': 'state_fips',
+                                    'fipsCountyCode': 'county_fips',
                                     'totalAmountIhpApproved': 'total_approved_ihp',
                                     'totalAmountHaApproved': 'total_approved_ha',
                                     'totalAmountOnaApproved': 'total_approved_ona',
@@ -218,11 +216,11 @@ class FEMAapi(API):
                                     'totalObligatedAmountCatC2g': 'total_obligated_c2g',
                                     'totalObligatedAmountHmgp': 'total_obligated_hmgp'})
 
-        self.data['total_approved'] = self.data.get('total_approved_ihp') \
-                                      + self.data.get('total_approved_ha') \
-                                      + self.data.get('total_approved_ona')
+        self.data['total_approved'] = self.data.get('total_approved_ihp', 0) \
+                                      + self.data.get('total_approved_ha', 0) \
+                                      + self.data.get('total_approved_ona', 0)
 
-        self.data['total_obligated'] = self.data.get('total_obligated_pa') \
-                                        + self.data.get('total_obligated_ab') \
-                                        + self.data.get('total_obligated_c2g') \
-                                        + self.data.get('total_obligated_hmgp')
+        self.data['total_obligated'] = self.data.get('total_obligated_pa', 0) \
+                                        + self.data.get('total_obligated_ab', 0) \
+                                        + self.data.get('total_obligated_c2g', 0) \
+                                        + self.data.get('total_obligated_hmgp', 0)

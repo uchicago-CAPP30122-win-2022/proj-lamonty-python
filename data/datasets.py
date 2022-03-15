@@ -37,7 +37,9 @@ def get_data(states, years):
     acs_df = make_acs_api_call(states, years)
     merged_df = pd.merge(acs_df, fema_df, how="left",
                         left_on=["county_fips", "state_fips", "year"],
-                        right_on=["fips_county", "fips_state", "year"])
+                        right_on=["county_fips", "state_fips", "year"])
+    merged_df['aid_per_capita'] = merged_df['total_approved'] / merged_df['population']
+
     return merged_df
 
 
