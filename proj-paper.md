@@ -3,7 +3,7 @@
 ### Team Members: Aditya (12332247), Ali (12273952), Wes (12324662) and Zander (12273788)
 
 ## Project Overview
-Our project enables exploration of various demographic, economic, and political features on federal government aid to counties after natural disasters in the U.S. We collect data from several government sources, including the Census Bureau and FEMA, to capture demographic, economic, and natural disaster measures. Our project includes a Plotly Dash interface where users can interact the data to explore the relationship between various demographic variables and FEMA aid provided to counties affected by natural disasters. 
+Our project enables exploration of various demographic, economic, and political features on federal government aid to counties after natural disasters in the U.S. We collect data from several government sources, including the Census Bureau and FEMA, to capture demographic, economic, and natural disaster measures. Our project includes a Plotly Dash interface where users can interact with the data to explore the relationship between various demographic variables and FEMA aid provided to counties affected by natural disasters. 
 
 ## Software Structure
 ```mermaid
@@ -24,13 +24,13 @@ end
 
 ag --> Dash-App
 ```
-The software consists of two abstract class connections to two separate APIs (and several downloaded static datasources) on the backend, a data integration and analysis middle layer, and a Plotly Dash frontend application. The backend of our project connects to the following APIs and static datasources:  
+The software consists of two abstract class connections to two separate APIs (and several downloaded static datasources) on the backend, a data integration and analysis middle layer, and a Plotly Dash frontend. The backend of our project connects to the following APIs and static datasources:  
 - <a href='https://www.census.gov/programs-surveys/acs/data/data-via-api.html'>American Community Survey from the U.S. Census Bureau</a>  
 - <a href='https://www.fema.gov/about/openfema/data-sets#disaster'>OpenFEMA Datasets</a>  
 - <a href='https://electionlab.mit.edu/data'>MIT Election Lab Federal Elections Data</a>  
-- <a href='https://www.nhc.noaa.gov/data/'>NOAA National Hurrican Center Data </a>
+- <a href='https://www.nhc.noaa.gov/data/'>NOAA National Hurrican Center Data</a>
   
-For one view, the middle layer aggregates the data by aggregating and joining ACS data with FEMA aid data. The middle layer also performs pre-processing on presedential voting and hurricane path static datafiles. After the data has been processed, the middle layer also performs several regressions on a subset of three specific hurricanes: Irma, Michael, and Harvey. Our Regression and API Data Pull classes are designed in an scalable manner so additional disasters could be added with littler effort.
+The middle layer compiles the data by aggregating and joining ACS data with FEMA aid data. The middle layer also performs pre-processing on presedential voting and hurricane path static datafiles. After the data has been processed, the middle layer runs several regressions on a subset of three specific hurricanes: Irma, Michael, and Harvey. Our Regression and API Data Pull classes are designed in an scalable manner so additional disasters could be added with littler effort.
 
 The front end of our application renders data across multiple views and data visualizations in a Plotly Dash interface. The interface allows the user to explore the realtionship between various demographic variables and FEMA aid in counties affected by natural diasters from 2010-2019. The frontend consists of two views:
 - Cross Section: user can explore the relationship between demographics and FEMA aid provided at the county-disaster level, exploring how different county demographic factors are related with aid levels for a given disaster or disasters.  
@@ -38,7 +38,7 @@ The front end of our application renders data across multiple views and data vis
 
 ## Code Responsibilities
 - Everyone: code reviews; collaborative code troubleshooting  
-- Aditya: project management; dash frontend, deep dive view  
+- Aditya: project management; Dash frontend, deep dive view  
 - Ali: FEMA API; ACS & FEMA blending; shell script  
 - Wesley: ACS API; statistical models  
 - Zander: frontend wireframing & styling; Dash frontend, cross-sectional view
