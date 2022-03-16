@@ -14,17 +14,13 @@ import numpy as np
 import pandas as pd
 from backend import datasets
 
-class Disaster_regs():
+class DisasterRegs():
     '''
     Class for running natural disaster regressions.
     '''
 
-    hurricane_dict = {"Harvey": (["22","48"],[2017]),
-                        "Irma": (["01","12","13","28","45","47"],[2017]),
-                        "Sandy": (["09","10","11","24","34","36","42","51","54"],[2012]),
-                        "Maria": (["72"],[2017])}
-
-    variable_dict = {'foreign_born':'Percentage of county population born outside U.S.',
+    variable_dict = {'population':'County-level population.',
+                'foreign_born':'Percentage of county population born outside U.S.',
                 'black_afam':'Percentage of county population Black/African American.',
                 'median_income':'Median household income (in nominal dollars).',
                 'snap_benefits':'Percentage of county households on SNAP benefits in the last 12 months.',
@@ -36,7 +32,7 @@ class Disaster_regs():
                 'median_home_price':'Median home price at county level (in nominal dollars).'}
 
 
-    def __init__(self, hurricane,reg_type):
+    def __init__(self, states, year,reg_type = None):
         '''
 		Constructor.
 
@@ -44,7 +40,8 @@ class Disaster_regs():
 			-hurricane: list of states to filter on corresponding
             to specific hurricane.
 		'''
-        self.hurricane = hurricane
+        self.states = states
+        self.year = year
         self.reg_type = reg_type
 
 
@@ -52,9 +49,7 @@ class Disaster_regs():
         '''
         Method that will pull data using API abstract class.
         '''
-        self.states,self.year = self.hurricane_dict[self.hurricane]
         self.dataframe = datasets.get_data(self.states,self.year)
-
         return self.dataframe
     
 
@@ -111,6 +106,7 @@ class Disaster_regs():
         
         out_df = pd.DataFrame({"Coefficient Estimate":coefs, "Standard Error":std_err,
                             "T-Stat":tvals, "P-Value":pvals})
+        out_df.reset_index()
 
         return out_df.round(decimals=3)
 
@@ -149,18 +145,3 @@ class Disaster_regs():
 
         return pd.DataFrame({"Independent Variable":exog_vars.columns, "Description":desc_list})
 
-
-
-def run_regressions(hurricane,reg_type):
-    '''
-    Performs Disaster_regs class, using input given from user
-        selection to run specified regression from specified hurricane.
-    '''
-    reg = Disaster_regs(hurricane,reg_type)
-    dataset = reg.pull_data()
-    if reg_type == "pooled":
-        reg_output,reg_data,var_table = reg.pooled_ols(dataset)
-    elif reg_type == "fe":
-        reg_output,reg_data,var_table = reg.panel_ols(dataset)
-    
-    return reg_output,reg_data,var_table
