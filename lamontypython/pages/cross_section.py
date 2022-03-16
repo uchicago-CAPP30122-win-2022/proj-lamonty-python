@@ -9,8 +9,6 @@ import json
 from helper import parse_restyle
 from backend import datasets
 
-START_IV_IDX = 0 #ZM: Update index 
-END_IV_IDX = 14
 DV_NAME = 'aid_requested'
 START_YEAR = 2010
 END_YEAR = 2019
@@ -22,9 +20,9 @@ with open('data/statestofips.json', 'r') as f:
   states_lookup = json.load(f)
   STATES = [i for i in states_lookup.keys()]
 
-marks_dict = {}
+years_dict = {}
 for i in range(START_YEAR, END_YEAR + 1):
-    marks_dict[i] = str(i)
+    years_dict[i] = str(i)
 
 layout = html.Div(children=[
     html.Div(className = 'filter-container',
@@ -32,14 +30,14 @@ layout = html.Div(children=[
             html.Div(className ='filter-div', 
                 children = [html.Label('Select a State'),
                     dcc.Dropdown(STATES, 
-                    STATES[0], multi = True, id='state-dd')]),#ZM: replace with state name from JSON
+                    STATES[43], multi = True, id='state-dd')]),
             html.Div(className='filter-div',
                 children = [html.Label('Select Disaster Type'),
                     dcc.Dropdown(multi = True, id='disaster-dd')]
             ),
             html.Div(className='filter-div',
                     children=[html.Label('Select X Axis Variable'),
-                    dcc.Dropdown(IV_LIST,'median_income', id='xaxis-dd')] # ZM: update indexes once we have real data 
+                    dcc.Dropdown(IV_LIST, 'median_income', id='xaxis-dd')]
             )
         ]
     ),
@@ -47,7 +45,7 @@ layout = html.Div(children=[
     html.Label('Select Year Range'),
     dcc.RangeSlider(START_YEAR, END_YEAR, 1, value=[2015, 2017], 
         id='year-slider',
-        marks = marks_dict
+        marks = years_dict
     ),
     html.Br(),
     html.Div(children=[
@@ -70,16 +68,17 @@ layout = html.Div(children=[
     dcc.Store(id='intermediate-value')
 ])
 
+
 @callback(
     Output('query-data', 'data'),
     Input('state-dd', 'value'),
     Input('year-slider', 'value')
 )
-def query_api(states, years): #ZM: placeholder callback, update with actual API
+def query_api(states, years):
     '''
     Load data from FEMA and ACS APIs into app using backend modules and user
     inputs for states and years. Data is used for all visuals on cross-section
-    view.
+    view. If API call fails, load data from static csv as backup.
 
     Inputs:
         states: a list of state names selected from the states dropdown in ui
@@ -93,13 +92,11 @@ def query_api(states, years): #ZM: placeholder callback, update with actual API
         states = [states]
     if not isinstance(years, list):
         years = [years]
-    # ZM: actual API should be called below instead of referencing df read in by
-    # pandas.
     state_codes = [states_lookup[i] for i in states]
     try:
-        #API call
-        print('state_codes', state_codes)
-        print('years', years)
+        #print('state_codes', state_codes)
+        #print('years', years)
+        # Selecting single year creates duplicate entries. Reduce to one entry.
         if max(years) == min(years):
             years = [max(years)]
         query_df = datasets.get_data(state_codes, years)
@@ -110,8 +107,9 @@ def query_api(states, years): #ZM: placeholder callback, update with actual API
             (df['year'] >= years[0]) &
             (df['year'] <= years[1])]
     
-    print('query',query_df.shape)
+    #print('query',query_df.shape)
     return query_df.to_json(date_format='iso', orient='split')
+
 
 @callback(
     Output('disaster-dd', 'options'),
@@ -120,7 +118,7 @@ def query_api(states, years): #ZM: placeholder callback, update with actual API
 )
 def get_disaster_options(query_df_json):
     '''
-    Get disaster options from queried data
+    Get disaster options from queried data for dropdown.
 
     Inputs:
         query_df_json: json file from browser memory, originally created by FEMA
@@ -131,8 +129,9 @@ def get_disaster_options(query_df_json):
     '''
     query_df = pd.read_json(query_df_json, orient='split')
     disaster_options = [i for i in query_df.incident_type.unique()]
-
+    disaster_options.sort()
     return disaster_options, disaster_options[0]
+
 
 @callback(
     Output('pc-fig', 'figure'),
@@ -165,9 +164,10 @@ def update_pc_and_data(query_df_json, disasters):
     pc_fig = px.parallel_coordinates(filtered_df, color="aid_requested",
                               dimensions=IV_LIST)
 
-    pc_fig.update_layout(margin = dict(l = 25))
+    pc_fig.update_layout(margin = dict(l = 30))
 
     return pc_fig, filtered_df.to_json(date_format='iso', orient='split')
+
 
 @callback(
     Output('scatter-fig', 'figure'),
@@ -192,23 +192,23 @@ def modify_scatter(restyleData, filtered_df_json, xaxis):
         scatter_fig: a Dash scatterplot component
     '''
     filtered_df = pd.read_json(filtered_df_json, orient='split')
-    print('filtered_df', filtered_df.shape)
+    #print('filtered_df', filtered_df.shape)
     scatter_fig = px.scatter(filtered_df, x=xaxis, y="aid_requested",
-        size="population", color="incident_type", hover_name="county_fips",
-        size_max=60, text = filtered_df.index)
-    #ZM: only handles dim_range of length one and doesn't support multiple axes
-    # some stateful way to track range selection history?
+        size="population", color="incident_type", hover_name='disaster_name',
+        hover_data =['state', 'county_fips', 'aid_requested','population', xaxis],
+        size_max=60)#, text = filtered_df.index)
+    # Only handles dim_range of length one and doesn't support multiple axes
     if restyleData and None not in restyleData[0].values():
         #print('restyleData', list(restyleData[0].values()))
         dim_index, dim_range = parse_restyle.parse_restyle(restyleData)
         col_index = IV_LIST[dim_index]
-        print('col_index', col_index)
-        print('dim_range',dim_range)
-        print('fd index', filtered_df.index.values)
-        filtered_df.reset_index()
+        #print('col_index', col_index)
+        #print('dim_range',dim_range)
+        #print('fd index', filtered_df.index.values)
+        #filtered_df.reset_index()
         selected_points = filtered_df[(filtered_df[col_index]>=dim_range[0]) &
             (filtered_df[col_index]<=dim_range[1])].index.values
-        print('selected_points', selected_points)
+        #print('selected_points', selected_points)
         scatter_fig.update_traces(selectedpoints = selected_points,
             customdata = filtered_df.index.values,
             selected = {'marker': {'opacity': 0.85}},
