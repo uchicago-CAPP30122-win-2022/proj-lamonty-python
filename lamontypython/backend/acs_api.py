@@ -87,8 +87,6 @@ class ACSapi(API):
                 "DP04_0047PE":"renter_occupied_rate","DP04_0089E":"median_home_price",
                 "DP04_0134E":"median_rent"})
 
-        final_df = final_df.dropna()
-
         for col in final_df:
             final_df = final_df[final_df[col] != -999999999.0]
 
