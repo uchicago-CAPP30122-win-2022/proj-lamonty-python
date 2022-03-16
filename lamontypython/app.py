@@ -15,16 +15,6 @@ app.layout = dbc.Container([html.Div([
         dbc.NavItem(dbc.NavLink("Cross-Section", href="/cross_section")),
         dbc.NavItem(dbc.NavLink("Deep Dive", href="/detail_view")),
         dbc.NavItem(dbc.NavLink("About", href="/about")),
-        dbc.DropdownMenu(
-            children=[
-                dbc.DropdownMenuItem("More pages", header=True),
-                dbc.DropdownMenuItem("Page 2", href="#"),
-                dbc.DropdownMenuItem("Page 3", href="#"),
-            ],
-            nav=True,
-            in_navbar=True,
-            label="More",
-        ),
     ],
     brand="FEMA Aid & Demographics",
     brand_href="#",
