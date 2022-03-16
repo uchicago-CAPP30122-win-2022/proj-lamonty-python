@@ -1,7 +1,6 @@
 # Run this app with `python app.py` and
 # visit http://127.0.0.1:8050/ in your web browser.
 
-
 from dash import Dash, html, dcc, Input, Output, callback
 import plotly.express as px
 import pandas as pd
@@ -15,6 +14,7 @@ END_YEAR = 2019
 IV_LIST = ['black_afam', 'foreign_born','health_insurance_rate',
     'median_home_price', 'median_income', 'median_rent', 'snap_benefits', 
     'unemp_rate',  'vacant_housing_rate']
+TEXAS_IDX = 43
 
 with open('data/statestofips.json', 'r') as f:
   states_lookup = json.load(f)
@@ -30,7 +30,7 @@ layout = html.Div(children=[
             html.Div(className ='filter-div', 
                 children = [html.Label('Select a State'),
                     dcc.Dropdown(STATES, 
-                    STATES[43], multi = True, id='state-dd')]),
+                    STATES[TEXAS_IDX], multi = True, id='state-dd')]),
             html.Div(className='filter-div',
                 children = [html.Label('Select Disaster Type'),
                     dcc.Dropdown(multi = True, id='disaster-dd')]
@@ -94,8 +94,6 @@ def query_api(states, years):
         years = [years]
     state_codes = [states_lookup[i] for i in states]
     try:
-        #print('state_codes', state_codes)
-        #print('years', years)
         # Selecting single year creates duplicate entries. Reduce to one entry.
         if max(years) == min(years):
             years = [max(years)]
@@ -107,7 +105,6 @@ def query_api(states, years):
             (df['year'] >= years[0]) &
             (df['year'] <= years[1])]
     
-    #print('query',query_df.shape)
     return query_df.to_json(date_format='iso', orient='split')
 
 
@@ -134,12 +131,12 @@ def get_disaster_options(query_df_json):
 
 
 @callback(
-    Output('pc-fig', 'figure'),
+
     Output('intermediate-value', 'data'),
     Input('query-data','data'),
     Input('disaster-dd', 'value'),
 )
-def update_pc_and_data(query_df_json, disasters):
+def update_data(query_df_json, disasters):
     '''
     Filter the data returned by API call further based on user inputs for
     specific disaster types.
@@ -150,7 +147,6 @@ def update_pc_and_data(query_df_json, disasters):
         disasters: a list of disaster types selected by user from ui dropdown
     
     Outputs:
-        pc_fig: a Dash parallel coorinates component
         filtered_df: a filtered version of the original API query, which feeds
         into the parallel coordinates and scatter plot graphs, converted to
             JSON for in-browser storage
@@ -159,15 +155,32 @@ def update_pc_and_data(query_df_json, disasters):
     if not isinstance(disasters, list):
         disasters = [disasters]
 
-    filtered_df = query_df[query_df['incident_type'].isin(disasters)].reset_index()
-    
+    filtered_df = query_df[query_df['incident_type'].isin(disasters)].reset_index(drop=True)
+
+    return filtered_df.to_json(date_format='iso', orient='split')
+
+
+@callback(
+    Output('pc-fig', 'figure'),
+    Input('intermediate-value', 'data')
+)
+def update_pc(filtered_df_json):
+    '''
+    Update the parallel coordinates chart with the intermediate data based on
+    user selections for states, years, and disaster types.
+
+    Inputs:
+        filtered_df_json: json file from browser memory, created by
+            update_pc_and_data callback
+    Outputs:
+        pc_fig: a Dash parallel coorinates component
+    '''
+    filtered_df = pd.read_json(filtered_df_json, orient='split')
     pc_fig = px.parallel_coordinates(filtered_df, color="aid_requested",
                               dimensions=IV_LIST)
 
     pc_fig.update_layout(margin = dict(l = 30))
-
-    return pc_fig, filtered_df.to_json(date_format='iso', orient='split')
-
+    return pc_fig
 
 @callback(
     Output('scatter-fig', 'figure'),
@@ -177,8 +190,8 @@ def update_pc_and_data(query_df_json, disasters):
 )
 def modify_scatter(restyleData, filtered_df_json, xaxis):
     '''
-    Modify the scatter plot based on user selections for x-axis variable and 
-    highlighted data ranges in the parallel coordinates plot. 
+    Modify the scatter plot based on user selections for x-axis variable and
+    filter data based on selected range in the parallel coordinates plot. 
 
     Inputs:
         restyleData: range of user selection from interactive parallel
@@ -192,27 +205,19 @@ def modify_scatter(restyleData, filtered_df_json, xaxis):
         scatter_fig: a Dash scatterplot component
     '''
     filtered_df = pd.read_json(filtered_df_json, orient='split')
-    #print('filtered_df', filtered_df.shape)
+    # Only handles dim_range of length one and doesn't support multiple axes
+    # or multiple selections along a single axis.
+    if restyleData and None not in restyleData[0].values():
+        dim_index, dim_range = parse_restyle.parse_restyle(restyleData)
+        col_index = IV_LIST[dim_index]
+
+        selected_points = filtered_df[(filtered_df[col_index]>=dim_range[0]) &
+            (filtered_df[col_index]<=dim_range[1])].index.values
+        filtered_df = filtered_df.iloc[selected_points]
+
     scatter_fig = px.scatter(filtered_df, x=xaxis, y="aid_requested",
         size="population", color="incident_type", hover_name='disaster_name',
         hover_data =['state', 'county_fips', 'aid_requested','population', xaxis],
-        size_max=60)#, text = filtered_df.index)
-    # Only handles dim_range of length one and doesn't support multiple axes
-    if restyleData and None not in restyleData[0].values():
-        #print('restyleData', list(restyleData[0].values()))
-        dim_index, dim_range = parse_restyle.parse_restyle(restyleData)
-        col_index = IV_LIST[dim_index]
-        #print('col_index', col_index)
-        #print('dim_range',dim_range)
-        #print('fd index', filtered_df.index.values)
-        #filtered_df.reset_index()
-        selected_points = filtered_df[(filtered_df[col_index]>=dim_range[0]) &
-            (filtered_df[col_index]<=dim_range[1])].index.values
-        #print('selected_points', selected_points)
-        scatter_fig.update_traces(selectedpoints = selected_points,
-            customdata = filtered_df.index.values,
-            selected = {'marker': {'opacity': 0.85}},
-            unselected = {'marker': { 'opacity': 0.15 }})
+        size_max=60, text = filtered_df.index)
 
-    scatter_fig.update_layout()
     return scatter_fig
