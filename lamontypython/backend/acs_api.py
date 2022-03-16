@@ -10,7 +10,7 @@ data and returns it as a Pandas dataframe.
 CensusData information: https://pypi.org/project/CensusData/
 """
 import pandas as pd
-import regex as re
+import re
 import censusdata
 from backend.api import API
 pd.set_option('display.expand_frame_repr', False)
@@ -86,8 +86,6 @@ class ACSapi(API):
                 "DP04_0003PE":"vacant_housing_rate", "DP04_0005E":"rental_vacancy_rate",
                 "DP04_0047PE":"renter_occupied_rate","DP04_0089E":"median_home_price",
                 "DP04_0134E":"median_rent"})
-
-        final_df = final_df.dropna()
 
         for col in final_df:
             final_df = final_df[final_df[col] != -999999999.0]
