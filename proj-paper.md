@@ -30,7 +30,8 @@ The software consists of two abstract class connections to two separate APIs (an
 - <a href='https://electionlab.mit.edu/data'>MIT Election Lab Federal Elections Data</a>  
 - <a href='https://www.nhc.noaa.gov/data/'>NOAA National Hurrican Center Data</a>
   
-The middle layer compiles the data by aggregating and joining ACS data with FEMA aid data. The middle layer also performs pre-processing on presedential voting and hurricane path static datafiles. After the data has been processed, the middle layer runs several regressions on a subset of three specific hurricanes: Irma, Michael, and Harvey. Our Regression and API Data Pull classes are designed in an scalable manner so additional disasters could be added with littler effort.
+
+The middle layer combines the data by aggregating and joining ACS data with FEMA aid data. The middle layer also performs pre-processing on presedential voting and hurricane path static datafiles. After the data has been processed, the middle layer also performs several regressions on a subset of three specific hurricanes: Irma, Michael, and Harvey. Our Regression and API Data Pull classes are designed in an scalable manner so additional disasters could be added with little effort.
 
 The front end of our application renders data across multiple views and data visualizations in a Plotly Dash interface. The interface allows the user to explore the realtionship between various demographic variables and FEMA aid in counties affected by natural diasters from 2010-2019. The frontend consists of two views:
 - Cross Section: user can explore the relationship between demographics and FEMA aid provided at the county-disaster level, exploring how different county demographic factors are related with aid levels for a given disaster or disasters.  
@@ -40,7 +41,7 @@ The front end of our application renders data across multiple views and data vis
 - Everyone: code reviews; collaborative code troubleshooting  
 - Aditya: project management; Dash frontend, deep dive view  
 - Ali: FEMA API; ACS & FEMA blending; shell script  
-- Wesley: ACS API; statistical models  
+- Wesley: ACS API; data cleaning & statistical models  
 - Zander: frontend wireframing & styling; Dash frontend, cross-sectional view
 
 ## App Interaction (Setup)
