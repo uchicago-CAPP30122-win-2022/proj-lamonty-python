@@ -28,8 +28,8 @@ def hurricane_subset(df):
     """
     harvey_data = df.loc[(df['NAME'] == 'HARVEY') & (df['SEASON'] == 2017)]
     irma_data = df.loc[(df['NAME'] == 'IRMA') & (df['SEASON'] == 2017)]
-    sandy_data = df.loc[(df['NAME'] == 'SANDY') & (df['SEASON'] == 2012)]
-    subset = [harvey_data, irma_data, sandy_data]
+    michael_data = df.loc[(df['NAME'] == 'MICHAEL') & (df['SEASON'] == 2018)]
+    subset = [harvey_data, irma_data, michael_data]
     subset_df = pd.concat(subset)
     subset_df.to_csv("hurricane_path.csv", index = False)
 

@@ -19,7 +19,8 @@ class DisasterRegs():
     Class for running natural disaster regressions.
     '''
 
-    variable_dict = {'population':'County-level population.',
+    variable_dict = {'const':'Intercept term',
+                'population':'County-level population.',
                 'foreign_born':'Percentage of county population born outside U.S.',
                 'black_afam':'Percentage of county population Black/African American.',
                 'median_income':'Median household income (in nominal dollars).',
@@ -37,8 +38,10 @@ class DisasterRegs():
 		Constructor.
 
         Parameters:
-			-hurricane: list of states to filter on corresponding
+			-states: list of states to filter on corresponding
             to specific hurricane.
+            -year: year hurricane occurred.
+            -reg_type: regression type to run.
 		'''
         self.states = states
         self.year = year
@@ -56,12 +59,15 @@ class DisasterRegs():
     def pooled_ols(self,dataset):
         '''
         Method to run simple pooled OLS regression.
+
+        Input:
+            -dataset: pandas dataframe to be read in and analyzed.
         '''
         y = pd.DataFrame(dataset, columns=['aid_requested'])
         exog_vars = self.vif_detection(pd.DataFrame(dataset, columns=['foreign_born','black_afam','median_income','snap_benefits','unemp_rate',
         'health_insurance_rate','vacant_housing_rate','rental_vacancy_rate','median_rent','median_home_price','population']),y)
-        var_table = self.var_table(exog_vars)
         X = sm.add_constant(exog_vars)
+        var_table = self.var_table(X)
         pooled_reg = sm.OLS(y,X).fit()
 
         return self.output_to_df(pooled_reg,"pooled"),y.merge(exog_vars, left_index=True, right_index=True),var_table
@@ -71,15 +77,19 @@ class DisasterRegs():
         '''
         Method running Fixed Effect regression. The state is set to be the panel variable, 
         with the year being the time variable.
-        '''
-        y = pd.DataFrame(dataset, columns=['aid_requested'])
-        exog_vars = self.vif_detection(pd.DataFrame(dataset, columns=['foreign_born','black_afam','median_income','snap_benefits','unemp_rate',
-        'health_insurance_rate','vacant_housing_rate','rental_vacancy_rate','median_rent','median_home_price','population']),y)
-        var_table = self.var_table(exog_vars)
 
+        Input:
+            -dataset: pandas dataframe to be read in and analyzed.
+        '''
         dataset['year'] = pd.to_datetime(dataset.year, format='%Y')
         dataset.astype({'state_fips': 'int32'}).dtypes
         dataset = dataset.set_index(['state_fips','year'])
+
+        y = pd.DataFrame(dataset, columns=['aid_requested'])
+        exog_vars = self.vif_detection(pd.DataFrame(dataset, columns=['foreign_born','black_afam','median_income','snap_benefits','unemp_rate',
+        'health_insurance_rate','vacant_housing_rate','rental_vacancy_rate','median_rent','median_home_price','population']),y)
+        X = sm.add_constant(exog_vars)
+        var_table = self.var_table(X)
         
         fe_reg = PanelOLS(y, sm.add_constant(exog_vars), entity_effects=True, time_effects=False).fit(cov_type='robust') 
 
@@ -94,6 +104,7 @@ class DisasterRegs():
 
         Input:
             -reg_output: regression output table to be converted.
+            -reg_type: type of regression to be run.
         '''
         coefs = reg_output.params
         pvals = reg_output.pvalues
@@ -138,6 +149,10 @@ class DisasterRegs():
         '''
         Method to take exogenous variables used in regression and create corresponding
         variable description table to be displayed on UI page.
+
+        Input:
+            -exog_vars: list of exogenous variables that will be added to variable
+                description table.
         '''
         desc_list=[]
         for var in exog_vars.columns:

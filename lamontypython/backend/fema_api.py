@@ -173,7 +173,6 @@ class FEMAapi(API):
 
             i += 1
             skip = i * self.top
-            print("Iteration " + str(i) + " done.")
 
         return dataframe
 
@@ -196,8 +195,6 @@ class FEMAapi(API):
 
             loop_num, count = self.get_loop_num(dataset, filter_path)
 
-            print("Starting " + dataset + " call: " + str(count) + " records, " + str(self.top) +
-                  " returned per call, " + str(loop_num) + " iterations needed.")
 
             dataframes[dataset] = self.get_dataframe(dataset, filter_path, loop_num)
 
