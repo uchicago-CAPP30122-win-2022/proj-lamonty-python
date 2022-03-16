@@ -11,7 +11,7 @@ from backend import datasets
 
 START_IV_IDX = 0 #ZM: Update index 
 END_IV_IDX = 14
-DV_NAME = 'aid_per_capita'
+DV_NAME = 'aid_requested'
 START_YEAR = 2010
 END_YEAR = 2019
 IV_LIST = ['black_afam', 'foreign_born','health_insurance_rate',
@@ -35,11 +35,7 @@ layout = html.Div(children=[
                     STATES[0], multi = True, id='state-dd')]),#ZM: replace with state name from JSON
             html.Div(className='filter-div',
                 children = [html.Label('Select Disaster Type'),
-                    dcc.Dropdown(['Hurricane'],
-                    'Hurricane',
-                    #df['incident_type'].unique(), 
-                    #df['incident_type'].unique()[0], 
-                    multi = True, id='disaster-dd')]
+                    dcc.Dropdown(multi = True, id='disaster-dd')]
             ),
             html.Div(className='filter-div',
                     children=[html.Label('Select X Axis Variable'),
@@ -118,6 +114,27 @@ def query_api(states, years): #ZM: placeholder callback, update with actual API
     return query_df.to_json(date_format='iso', orient='split')
 
 @callback(
+    Output('disaster-dd', 'options'),
+    Output('disaster-dd', 'value'),
+    Input('query-data','data')
+)
+def get_disaster_options(query_df_json):
+    '''
+    Get disaster options from queried data
+
+    Inputs:
+        query_df_json: json file from browser memory, originally created by FEMA
+    
+    Outputs:
+        disaster_options: disaster types present in queried data, setting first
+            result as default
+    '''
+    query_df = pd.read_json(query_df_json, orient='split')
+    disaster_options = [i for i in query_df.incident_type.unique()]
+
+    return disaster_options, disaster_options[0]
+
+@callback(
     Output('pc-fig', 'figure'),
     Output('intermediate-value', 'data'),
     Input('query-data','data'),
@@ -143,10 +160,10 @@ def update_pc_and_data(query_df_json, disasters):
     if not isinstance(disasters, list):
         disasters = [disasters]
 
-    filtered_df = query_df[query_df['incident_type'].isin(disasters)]
+    filtered_df = query_df[query_df['incident_type'].isin(disasters)].reset_index()
     
-    pc_fig = px.parallel_coordinates(filtered_df, color="aid_per_capita",
-                              dimensions=IV_LIST) #ZM: update indexes once we have full data
+    pc_fig = px.parallel_coordinates(filtered_df, color="aid_requested",
+                              dimensions=IV_LIST)
 
     pc_fig.update_layout(margin = dict(l = 25))
 
@@ -174,9 +191,9 @@ def modify_scatter(restyleData, filtered_df_json, xaxis):
     Outputs:
         scatter_fig: a Dash scatterplot component
     '''
-    filtered_df = pd.read_json(filtered_df_json, orient='split').reset_index()
+    filtered_df = pd.read_json(filtered_df_json, orient='split')
     print('filtered_df', filtered_df.shape)
-    scatter_fig = px.scatter(filtered_df, x=xaxis, y="aid_per_capita",
+    scatter_fig = px.scatter(filtered_df, x=xaxis, y="aid_requested",
         size="population", color="incident_type", hover_name="county_fips",
         size_max=60, text = filtered_df.index)
     #ZM: only handles dim_range of length one and doesn't support multiple axes
@@ -187,13 +204,15 @@ def modify_scatter(restyleData, filtered_df_json, xaxis):
         col_index = IV_LIST[dim_index]
         print('col_index', col_index)
         print('dim_range',dim_range)
+        print('fd index', filtered_df.index.values)
         filtered_df.reset_index()
         selected_points = filtered_df[(filtered_df[col_index]>=dim_range[0]) &
             (filtered_df[col_index]<=dim_range[1])].index.values
         print('selected_points', selected_points)
         scatter_fig.update_traces(selectedpoints = selected_points,
+            customdata = filtered_df.index.values,
             selected = {'marker': {'opacity': 0.85}},
             unselected = {'marker': { 'opacity': 0.15 }})
 
-    #scatter_fig.update_layout()
+    scatter_fig.update_layout()
     return scatter_fig
