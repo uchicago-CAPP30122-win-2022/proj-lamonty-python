@@ -86,7 +86,6 @@ def display_hurricane(hurricane, regression_choice):
     year_occur = hurricane_scope[hurricane]["year"][0]
     election = winner.loc[winner['year'] == utils.get_election_year(year_occur)]
     merged_df= pd.merge(election, api_data, how="left", on = 'county_fips')
-    print(merged_df)
     fig = px.choropleth_mapbox(merged_df, geojson=counties,
       locations='county_fips',
       hover_name = 'county_name',
