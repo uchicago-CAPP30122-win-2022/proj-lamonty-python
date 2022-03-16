@@ -10,7 +10,7 @@ data and returns it as a Pandas dataframe.
 CensusData information: https://pypi.org/project/CensusData/
 """
 import pandas as pd
-import regex as re
+import re
 import censusdata
 from backend.api import API
 pd.set_option('display.expand_frame_repr', False)
