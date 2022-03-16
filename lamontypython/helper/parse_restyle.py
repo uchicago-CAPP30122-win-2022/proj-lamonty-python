@@ -1,4 +1,5 @@
 import re
+## SAMPLE INPUTS ##
 #single range outputs this:
 #sample = [{'dimensions[1].constraintrange': [[0.6248482204515293, 0.786903328351732]]},[0]]
 # multi range outputs this:
@@ -17,7 +18,6 @@ def parse_restyle(input):
         range_pairs: a list of lists (each of length two) containing the min
         and max value in a given range.
     '''
-    print('pr input',input)
     index = [re.findall('[0-9]+', k) for k in input[0].keys()]
     range_pairs = []
     for i in input[0].values():

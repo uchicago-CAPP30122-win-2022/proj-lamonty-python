@@ -12,5 +12,9 @@
 },
 "MARIA": {
     "states_fips": ["12","72"],
-    "year": [2017]}
+    "year": [2017]
+},
+"MICHAEL": {
+    "states_fips": ["01","12","13"],
+    "year": [2018]}
 }
