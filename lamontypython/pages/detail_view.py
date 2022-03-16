@@ -74,7 +74,6 @@ def display_hurricane(hurricane, regression_choice):
         In layman’s terms, that variable is significant in determining\
         the dollar value of FEMA aid requested by the county."
     else:
-        print('fe start')
         reg_output,_,var_table = regression.panel_ols(api_data)
         text = "In the table above we see the results to the Fixed Effect Panel regression, \
         where the entity effect (panel variable) is set to the state. \
