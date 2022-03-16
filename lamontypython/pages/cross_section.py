@@ -14,6 +14,13 @@ END_YEAR = 2019
 IV_LIST = ['black_afam', 'foreign_born','health_insurance_rate',
     'median_home_price', 'median_income', 'median_rent', 'snap_benefits', 
     'unemp_rate',  'vacant_housing_rate']
+LABELS = {'black_afam':'Pcnt. Black' , 'foreign_born': 'Pcnt. Foreign Born',
+    'health_insurance_rate': 'Health Iunsurance Rate',
+    'median_home_price': 'Median Home Price', 'median_income': 'Median Income', 
+    'median_rent': 'Median Rent', 'snap_benefits': 'Pcnt. Snap Benefits', 
+    'unemp_rate': 'Unemployment Rate',  'vacant_housing_rate': 'Vacant Housing Pcnt.',
+    'aid_requested': 'Aid Amount', 'incident_type': 'Disaster Type',
+    'population':'Population', 'state': 'State', 'county_fips':'County FIPS Code'}
 TEXAS_IDX = 43
 
 with open('data/statestofips.json', 'r') as f:
@@ -177,7 +184,7 @@ def update_pc(filtered_df_json):
     '''
     filtered_df = pd.read_json(filtered_df_json, orient='split')
     pc_fig = px.parallel_coordinates(filtered_df, color="aid_requested",
-                              dimensions=IV_LIST)
+                              dimensions=IV_LIST, labels = LABELS)
 
     pc_fig.update_layout(margin = dict(l = 30))
     return pc_fig
@@ -218,6 +225,6 @@ def modify_scatter(restyleData, filtered_df_json, xaxis):
     scatter_fig = px.scatter(filtered_df, x=xaxis, y="aid_requested",
         size="population", color="incident_type", hover_name='disaster_name',
         hover_data =['state', 'county_fips', 'aid_requested','population', xaxis],
-        size_max=60, text = filtered_df.index)
+        size_max=60, labels = LABELS)
 
     return scatter_fig
