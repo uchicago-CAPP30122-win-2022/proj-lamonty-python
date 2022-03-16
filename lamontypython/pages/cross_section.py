@@ -1,19 +1,27 @@
 # Run this app with `python app.py` and
 # visit http://127.0.0.1:8050/ in your web browser.
 
-from helper import parse_restyle
+
 from dash import Dash, html, dcc, Input, Output, callback
 import plotly.express as px
 import pandas as pd
 import json
-import helper.parse_restyle
+from helper import parse_restyle
+from backend import datasets
 
 START_IV_IDX = 0 #ZM: Update index 
 END_IV_IDX = 14
 DV_NAME = 'aid_per_capita'
 START_YEAR = 2010
 END_YEAR = 2019
-df = pd.read_csv('data/dummy_data.csv')
+IV_LIST = ['black_afam', 'foreign_born','health_insurance_rate',
+    'median_home_price', 'median_income', 'median_rent', 'snap_benefits', 
+    'unemp_rate',  'vacant_housing_rate']
+
+with open('data/statestofips.json', 'r') as f:
+  states_lookup = json.load(f)
+  STATES = [i for i in states_lookup.keys()]
+
 marks_dict = {}
 for i in range(START_YEAR, END_YEAR + 1):
     marks_dict[i] = str(i)
@@ -23,23 +31,25 @@ layout = html.Div(children=[
         children=[
             html.Div(className ='filter-div', 
                 children = [html.Label('Select a State'),
-                    dcc.Dropdown(df['state'].unique(), 
-                    df['state'].unique()[0:3], multi = True, id='state-dd')]),#ZM: replace with state name from JSON
+                    dcc.Dropdown(STATES, 
+                    STATES[0], multi = True, id='state-dd')]),#ZM: replace with state name from JSON
             html.Div(className='filter-div',
                 children = [html.Label('Select Disaster Type'),
-                    dcc.Dropdown(df['incident_type'].unique(), 
-                    df['disaster_type'].unique()[0], multi = True, id='disaster-dd')]
+                    dcc.Dropdown(['Hurricane'],
+                    'Hurricane',
+                    #df['incident_type'].unique(), 
+                    #df['incident_type'].unique()[0], 
+                    multi = True, id='disaster-dd')]
             ),
             html.Div(className='filter-div',
                     children=[html.Label('Select X Axis Variable'),
-                    dcc.Dropdown(df.columns[START_IV_IDX:END_IV_IDX], 
-                        df.columns[START_IV_IDX], id='xaxis-dd')] # ZM: update indexes once we have real data 
+                    dcc.Dropdown(IV_LIST,'median_income', id='xaxis-dd')] # ZM: update indexes once we have real data 
             )
         ]
     ),
     html.Br(),
     html.Label('Select Year Range'),
-    dcc.RangeSlider(START_YEAR, END_YEAR, 1, value=[START_YEAR, START_YEAR + 2], 
+    dcc.RangeSlider(START_YEAR, END_YEAR, 1, value=[2015, 2017], 
         id='year-slider',
         marks = marks_dict
     ),
@@ -89,10 +99,22 @@ def query_api(states, years): #ZM: placeholder callback, update with actual API
         years = [years]
     # ZM: actual API should be called below instead of referencing df read in by
     # pandas.
-    query_df = df[df['state'].isin(states) & 
-        (df['year'] >= years[0]) &
-        (df['year'] <= years[1])]
+    state_codes = [states_lookup[i] for i in states]
+    try:
+        #API call
+        print('state_codes', state_codes)
+        print('years', years)
+        if max(years) == min(years):
+            years = [max(years)]
+        query_df = datasets.get_data(state_codes, years)
+    except:
+        print('API CALL FAILED - LOADING STATIC BACKUP DATA')
+        df = pd.read_csv('data/harvey_test_data.csv')
+        query_df = df[df['state_fips'].isin(state_codes) & 
+            (df['year'] >= years[0]) &
+            (df['year'] <= years[1])]
     
+    print('query',query_df.shape)
     return query_df.to_json(date_format='iso', orient='split')
 
 @callback(
@@ -121,10 +143,10 @@ def update_pc_and_data(query_df_json, disasters):
     if not isinstance(disasters, list):
         disasters = [disasters]
 
-    filtered_df = query_df[query_df['disaster_type'].isin(disasters)]
+    filtered_df = query_df[query_df['incident_type'].isin(disasters)]
     
     pc_fig = px.parallel_coordinates(filtered_df, color="aid_per_capita",
-                              dimensions=filtered_df.columns[START_IV_IDX:END_IV_IDX]) #ZM: update indexes once we have full data
+                              dimensions=IV_LIST) #ZM: update indexes once we have full data
 
     pc_fig.update_layout(margin = dict(l = 25))
 
@@ -152,24 +174,26 @@ def modify_scatter(restyleData, filtered_df_json, xaxis):
     Outputs:
         scatter_fig: a Dash scatterplot component
     '''
-    filtered_df = pd.read_json(filtered_df_json, orient='split')
+    filtered_df = pd.read_json(filtered_df_json, orient='split').reset_index()
+    print('filtered_df', filtered_df.shape)
     scatter_fig = px.scatter(filtered_df, x=xaxis, y="aid_per_capita",
-        size="population", color="disaster_type", hover_name="county_fips",
-        size_max=60)
+        size="population", color="incident_type", hover_name="county_fips",
+        size_max=60, text = filtered_df.index)
     #ZM: only handles dim_range of length one and doesn't support multiple axes
     # some stateful way to track range selection history?
     if restyleData and None not in restyleData[0].values():
         #print('restyleData', list(restyleData[0].values()))
         dim_index, dim_range = parse_restyle.parse_restyle(restyleData)
-        col_index = START_IV_IDX + dim_index
-        #print('col_index', col_index)
-        #print('dim_range',dim_range)
-
-        selected_points = filtered_df[(filtered_df[filtered_df.columns[col_index]]>=dim_range[0]) &
-            (filtered_df[filtered_df.columns[col_index]]<=dim_range[1])].index.values
-        #print('selected_points', selected_points)
+        col_index = IV_LIST[dim_index]
+        print('col_index', col_index)
+        print('dim_range',dim_range)
+        filtered_df.reset_index()
+        selected_points = filtered_df[(filtered_df[col_index]>=dim_range[0]) &
+            (filtered_df[col_index]<=dim_range[1])].index.values
+        print('selected_points', selected_points)
         scatter_fig.update_traces(selectedpoints = selected_points,
+            selected = {'marker': {'opacity': 0.85}},
             unselected = {'marker': { 'opacity': 0.15 }})
 
-    scatter_fig.update_layout()
+    #scatter_fig.update_layout()
     return scatter_fig
